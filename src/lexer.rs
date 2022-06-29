@@ -10,9 +10,10 @@ pub(crate) enum TokenType {
 	LinkName,
 	LinkDir,
 	Attr,
-	IDAttr,
-	ClassAttr,
-	NormAttr,
+	Sub,
+	Sup,
+	Span,
+	Code,
 }
 
 #[derive(Clone, Debug)]
@@ -66,6 +67,22 @@ pub(crate) fn tokenize(input: &str) -> Vec<Token> {
 							'[' => {
 								push_token(&mut tokens, &current_token);
 								current_token = Token::init(TokenType::LinkName, cha.to_string());
+							},
+							'~' => {
+								push_token(&mut tokens, &current_token);
+								current_token = Token::init(TokenType::Sub, cha.to_string());
+							},
+							'^' => {
+								push_token(&mut tokens, &current_token);
+								current_token = Token::init(TokenType::Sup, cha.to_string());
+							},
+							'`' => {
+								push_token(&mut tokens, &current_token);
+								current_token = Token::init(TokenType::Sup, cha.to_string());
+							},
+							'@' => {
+								push_token(&mut tokens, &current_token);
+								current_token = Token::init(TokenType::Span, cha.to_string());
 							},
 							'(' => {
 								match tokens.last() {
@@ -156,6 +173,61 @@ pub(crate) fn tokenize(input: &str) -> Vec<Token> {
 							} else { strong_wait = false; }
 						},
 						' ' => if current_token.content == "__ " && !escaping { current_token.class = TokenType::Put },
+						_ => (),
+					}
+				},
+				TokenType::Sub => {
+					current_token.content += &cha.to_string();
+					match cha {
+						'~' => {
+							if !escaping {
+								current_token.tokenize_content(1);
+								push_token(&mut tokens, &current_token);
+								current_token = Token::new();
+							} 
+						},
+						' ' => if current_token.content == "~ " && !escaping { current_token.class = TokenType::Put },
+						_ => (),
+					}
+				},
+				TokenType::Sup => {
+					current_token.content += &cha.to_string();
+					match cha {
+						'^' => {
+							if !escaping {
+								current_token.tokenize_content(1);
+								push_token(&mut tokens, &current_token);
+								current_token = Token::new();
+							} 
+						},
+						' ' => if current_token.content == "^ " && !escaping { current_token.class = TokenType::Put },
+						_ => (),
+					}
+				},
+				TokenType::Span => {
+					current_token.content += &cha.to_string();
+					match cha {
+						'@' => {
+							if !escaping {
+								current_token.tokenize_content(1);
+								push_token(&mut tokens, &current_token);
+								current_token = Token::new();
+							} 
+						},
+						' ' => if current_token.content == "@ " && !escaping { current_token.class = TokenType::Put },
+						_ => (),
+					}
+				},
+				TokenType::Code => {
+					current_token.content += &cha.to_string();
+					match cha {
+						'`' => {
+							if !escaping {
+								current_token.tokenize_content(1);
+								push_token(&mut tokens, &current_token);
+								current_token = Token::new();
+							} 
+						},
 						_ => (),
 					}
 				},
