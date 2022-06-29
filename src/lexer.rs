@@ -14,6 +14,8 @@ pub(crate) enum TokenType {
 	Sup,
 	Span,
 	Code,
+	Strike,
+	Under,
 }
 
 #[derive(Clone, Debug)]
@@ -83,6 +85,10 @@ pub(crate) fn tokenize(input: &str) -> Vec<Token> {
 							'@' => {
 								push_token(&mut tokens, &current_token);
 								current_token = Token::init(TokenType::Span, cha.to_string());
+							},
+							'-' => {
+								push_token(&mut tokens, &current_token);
+								current_token = Token::init(TokenType::Strike, cha.to_string());
 							},
 							'(' => {
 								match tokens.last() {
@@ -228,6 +234,37 @@ pub(crate) fn tokenize(input: &str) -> Vec<Token> {
 								current_token = Token::new();
 							} 
 						},
+						_ => (),
+					}
+				},
+				TokenType::Strike => {
+					current_token.content += &cha.to_string();
+					match cha {
+						'-' => {
+							if current_token.content == "--" && !escaping { current_token.class = TokenType::Under; }
+							else if !escaping {
+								current_token.tokenize_content(1);
+								push_token(&mut tokens, &current_token);
+								current_token = Token::new();
+							}
+						},
+						' ' => if current_token.content == "- " && !escaping { current_token.class = TokenType::Put },
+						_ => (),
+					}
+				},
+				TokenType::Under => {
+					current_token.content += &cha.to_string();
+					match cha {
+						'-' => {
+							if !escaping && !strong_wait { strong_wait = true; }
+							else if !escaping && strong_wait {
+								current_token.tokenize_content(2);
+								push_token(&mut tokens, &current_token);
+								current_token = Token::new();
+								strong_wait = false;
+							} else { strong_wait = false; }
+						},
+						' ' => if current_token.content == "-- " && !escaping { current_token.class = TokenType::Put },
 						_ => (),
 					}
 				},
