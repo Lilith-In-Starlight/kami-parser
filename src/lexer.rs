@@ -17,6 +17,7 @@ pub(crate) enum TokenType {
 	Strike,
 	Under,
 	Header,
+	Html
 }
 
 #[derive(Clone, Debug)]
@@ -95,6 +96,10 @@ pub(crate) fn tokenize(input: &str) -> Vec<Token> {
 								if pos == 0 { current_token = Token::init(TokenType::Header, cha.to_string()); }
 								else { current_token.content += &cha.to_string(); }
 							},
+							'<' => {
+								push_token(&mut tokens, &current_token);
+								current_token = Token::init(TokenType::Html, cha.to_string());
+							},
 							'(' => {
 								match tokens.last() {
 									None => current_token.content += &cha.to_string(),
@@ -109,7 +114,7 @@ pub(crate) fn tokenize(input: &str) -> Vec<Token> {
 							'{' => {
 								push_token(&mut tokens, &current_token);
 								match tokens.last() {
-									None => current_token.content += &cha.to_string(),
+									None => current_token = Token::init(TokenType::Attr, cha.to_string()),
 									Some(last_token) => {
 										match last_token.class {
 											TokenType::Put => {
@@ -273,6 +278,20 @@ pub(crate) fn tokenize(input: &str) -> Vec<Token> {
 						_ => (),
 					}
 				},
+				TokenType::Html => {
+					current_token.content += &cha.to_string();
+					match cha {
+						'>' => {
+							if !escaping {
+								current_token.tokenize_content(1);
+								push_token(&mut tokens, &current_token);
+								current_token = Token::new();
+							}
+						},
+						' ' => if current_token.content == "< " && !escaping { current_token.class = TokenType::Put },
+						_ => (),
+					}
+				},
 				TokenType::LinkName => {
 					current_token.content += &cha.to_string();
 					match cha {
@@ -319,14 +338,21 @@ pub(crate) fn tokenize(input: &str) -> Vec<Token> {
 				},
 				TokenType::Header => {
 					match cha {
-						'#' => (),
+						'#' => current_token.content += &cha.to_string(),
+						'{' => {
+							push_token(&mut tokens, &current_token);
+							current_token = Token::init(TokenType::Attr, cha.to_string());
+						}
+						' ' => {
+							push_token(&mut tokens, &current_token);
+							current_token = Token::new();
+						}
 						_ => {
 							push_token(&mut tokens, &current_token);
 							current_token = Token::new();
 						}
 					}
-					current_token.content += &cha.to_string()
-				}
+				},
 				_ => panic!("Reached undefined token type {:?}", current_token.class),
 			}
 		}
@@ -343,7 +369,11 @@ fn push_token(list: &mut Vec<Token>, token: &Token) {
 	if token.content != "" { list.push(token.clone()); }
 }
 
-fn parse_attr(input: &str) -> String {
+fn parse_attr(inp: &str) -> String {
+	if inp == "{}" || inp == "" { 
+		return String::new()
+	}
+	let input = &inp[1..inp.len()-1];
 	let mut id = String::new();
 	let mut class = String::new();
 	let mut current_type = "none";
@@ -373,7 +403,6 @@ fn parse_attr(input: &str) -> String {
 			"id" => {
 				match cha {
 					' ' => {
-						id += &cha.to_string();
 						current_type = "none";
 					},
 					_ => id += &cha.to_string(),
@@ -383,10 +412,10 @@ fn parse_attr(input: &str) -> String {
 		}
 	}
 	if id != "" {
-		out += &("id=".to_string() + &id + "\"");
+		out += &("id=\"".to_string() + &id + "\" ");
 	}
 	if class != "" {
-		out += &("class=".to_string() + &id + "\"");
+		out += &("class=\"".to_string() + &class + "\" ");
 	}
 	out + &everything_else
 }
@@ -400,7 +429,9 @@ pub(crate) fn parse_multiline(input: &str) -> String {
 			None => out += "\n",
 			Some(first_token) => {
 				match first_token.class {
-					TokenType::Header => out += &("<h".to_owned() + &first_token.content.len().to_string() + ">" + &parse_line(&tokens[1..].to_vec()) + "</h" + &first_token.content.len().to_string() + ">\n"),
+					TokenType::Header => out += &("<h".to_owned() + &first_token.content.len().to_string() + " " + &parse_attr(&first_token.attributes) + ">" + &parse_line(&tokens[1..].to_vec()) + "</h" + &first_token.content.len().to_string() + ">\n"),
+					TokenType::Attr => out += &("<p ".to_owned() + &parse_attr(&first_token.content) + ">" + &parse_line(&tokens[1..].to_vec()) + "</p>\n"),
+					TokenType::Html => out += &first_token.content,
 					_ => out += &("<p>".to_owned() + &parse_line(&tokens) + "</p>\n"),
 				}
 			}
@@ -428,7 +459,7 @@ fn parse_line(input: &Vec<Token>) -> String {
 				if iter < input.len() - 1 {
 					let next = &input[iter + 1];
 					match next.class {
-						TokenType::LinkDir => out += &("<a href=\"".to_owned() + &next.content[1..next.content.len()-1] + "\" " + &parse_attr(&i.attributes) + ">" + &parsed_name + "</a>"),
+						TokenType::LinkDir => out += &("<a href=\"".to_owned() + &next.content[1..next.content.len()-1] + "\" " + &parse_attr(&next.attributes) + ">" + &parsed_name + "</a>"),
 						_ => out += &("<a href=\"".to_owned() + &parsed_name + "\" "  + &parse_attr(&i.attributes) + ">" + &parsed_name + "</a>"),
 					}
 				} else { out += &("<a href=\"".to_owned() + &parsed_name + "\" "  + &parse_attr(&i.attributes) + ">" + &parsed_name + "</a>"); }

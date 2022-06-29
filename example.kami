@@ -10,14 +10,16 @@ This is a [hyperlink](ampersandia.net){#example rel="me"}, they can also have ID
 ##{.subtitle} Headers
 They can contain attributes as well. This one has a class.
 
-~Substrings~ and ^superstrings^ can very importantly contain spaces.
+~Subscript~ and ^supercript^ can very importantly contain spaces.
 
 {.example-p} A paragraph can also contain attributes
 
-={} This paragraph is justified
+This paragraph is justified
 
 {#rightalign} This one is right-aligned and has an ID
 
 `This is inline code` (yes, it can have attributes). Code blocks are the same but they have three backticks
 
 @this is a span@ (yep. it can also have attributes)
+
+<link>
