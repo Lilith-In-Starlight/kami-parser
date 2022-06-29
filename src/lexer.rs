@@ -1,3 +1,5 @@
+use std::collections::HashMap;
+
 #[derive(Clone, Debug)]
 pub(crate) enum TokenType {
 	Put,
@@ -5,20 +7,34 @@ pub(crate) enum TokenType {
 	Strong,
 	Italic,
 	Emphasis,
+	LinkName,
+	LinkDir,
+	Attr,
+	IDAttr,
+	ClassAttr,
+	NormAttr,
 }
 
 #[derive(Clone, Debug)]
 pub(crate) struct Token {
 	pub(crate) class: TokenType,
 	pub(crate) content: String,
+	pub(crate) subtokens: Vec<Token>,
+	pub(crate) attributes: String,
 }
 
 impl Token {
 	fn new() -> Self {
-		Self { class: TokenType::Put, content: String::new() }
+		Self { class: TokenType::Put, content: String::new(), subtokens: Vec::new(), attributes: String::new() }
 	}
 	fn init(class: TokenType, content: String) -> Self {
-		Self { class: class, content: content }
+		Self { class: class, content: content, subtokens: Vec::new(), attributes: String::new() }
+	}
+	fn init_sub(class: TokenType, content: Vec<Self>) -> Self {
+		Self { class: class, content: String::new(), subtokens: content, attributes: String::new() }
+	}
+	fn tokenize_content(self: &mut Self, borders: usize) {
+		self.subtokens = tokenize(&self.content[borders..self.content.len()-borders]);
 	}
 }
 
@@ -47,6 +63,36 @@ pub(crate) fn tokenize(input: &str) -> Vec<Token> {
 								push_token(&mut tokens, &current_token);
 								current_token = Token::init(TokenType::Italic, cha.to_string());
 							},
+							'[' => {
+								push_token(&mut tokens, &current_token);
+								current_token = Token::init(TokenType::LinkName, cha.to_string());
+							},
+							'(' => {
+								match tokens.last() {
+									None => current_token.content += &cha.to_string(),
+									Some(last_token) => {
+										match last_token.class {
+											TokenType::LinkName => current_token = Token::init(TokenType::LinkDir, cha.to_string()),
+											_ => current_token.content += &cha.to_string(),
+										}
+									}
+								}
+							},
+							'{' => {
+								push_token(&mut tokens, &current_token);
+								match tokens.last() {
+									None => current_token.content += &cha.to_string(),
+									Some(last_token) => {
+										match last_token.class {
+											TokenType::Put => {
+												tokens.pop();
+												current_token.content += &cha.to_string();
+											},
+											_ => current_token = Token::init(TokenType::Attr, cha.to_string()),
+										}
+									}
+								}
+							},
 							_ => current_token.content += &cha.to_string(),
 						}
 					} else { current_token.content += &cha.to_string(); }
@@ -57,10 +103,9 @@ pub(crate) fn tokenize(input: &str) -> Vec<Token> {
 						'*' => {
 							if current_token.content == "**" && !escaping { current_token.class = TokenType::Strong; }
 							else if !escaping {
-								push_token(&mut tokens, &Token::init(TokenType::Bold, String::from("*")));
-								tokens.append(&mut tokenize(&current_token.content[1..current_token.content.len()-1]));
-								push_token(&mut tokens, &Token::init(TokenType::Bold, String::from("*")));
-								current_token = Token::init(TokenType::Put, String::new());
+								current_token.tokenize_content(1);
+								push_token(&mut tokens, &current_token);
+								current_token = Token::new();
 							}
 						},
 						' ' => if current_token.content == "* " && !escaping { current_token.class = TokenType::Put },
@@ -73,10 +118,9 @@ pub(crate) fn tokenize(input: &str) -> Vec<Token> {
 						'*' => {
 							if !escaping && !strong_wait { strong_wait = true; }
 							else if !escaping && strong_wait {
-								push_token(&mut tokens, &Token::init(TokenType::Strong, String::from("**")));
-								tokens.append(&mut tokenize(&current_token.content[2..current_token.content.len()-2]));
-								push_token(&mut tokens, &Token::init(TokenType::Strong, String::from("**")));
-								current_token = Token::init(TokenType::Put, String::new());
+								current_token.tokenize_content(2);
+								push_token(&mut tokens, &current_token);
+								current_token = Token::new();
 								strong_wait = false;
 							} else { strong_wait = false; }
 						},
@@ -90,11 +134,9 @@ pub(crate) fn tokenize(input: &str) -> Vec<Token> {
 						'_' => {
 							if current_token.content == "__" && !escaping { current_token.class = TokenType::Emphasis; }
 							else if !escaping {
-								current_token.class = TokenType::Put;
-								push_token(&mut tokens, &Token::init(TokenType::Italic, String::from("_")));
-								tokens.append(&mut tokenize(&current_token.content[1..current_token.content.len()-1]));
-								push_token(&mut tokens, &Token::init(TokenType::Italic, String::from("_")));
-								current_token = Token::init(TokenType::Put, String::new());
+								current_token.tokenize_content(1);
+								push_token(&mut tokens, &current_token);
+								current_token = Token::new();
 							}
 						},
 						' ' => if current_token.content == "_ " && !escaping { current_token.class = TokenType::Put },
@@ -107,14 +149,55 @@ pub(crate) fn tokenize(input: &str) -> Vec<Token> {
 						'_' => {
 							if !escaping && !strong_wait { strong_wait = true; }
 							else if !escaping && strong_wait {
-								push_token(&mut tokens, &Token::init(TokenType::Emphasis, String::from("__")));
-								tokens.append(&mut tokenize(&current_token.content[2..current_token.content.len()-2]));
-								push_token(&mut tokens, &Token::init(TokenType::Emphasis, String::from("__")));
-								current_token = Token::init(TokenType::Put, String::new());
+								current_token.tokenize_content(2);
+								push_token(&mut tokens, &current_token);
+								current_token = Token::new();
 								strong_wait = false;
 							} else { strong_wait = false; }
 						},
 						' ' => if current_token.content == "__ " && !escaping { current_token.class = TokenType::Put },
+						_ => (),
+					}
+				},
+				TokenType::LinkName => {
+					current_token.content += &cha.to_string();
+					match cha {
+						']' => {
+							if !escaping {
+								current_token.tokenize_content(1);
+								push_token(&mut tokens, &current_token);
+								current_token = Token::new();
+							}
+						},
+						_ => (),
+					}
+				},
+				TokenType::LinkDir => {
+					current_token.content += &cha.to_string();
+					match cha {
+						')' => {
+							if !escaping {
+								push_token(&mut tokens, &current_token);
+								current_token = Token::new();
+							}
+						},
+						_ => (),
+					}
+				},
+				TokenType::Attr => {
+					current_token.content += &cha.to_string();
+					match cha {
+						'}' => {
+							if !escaping {
+								match tokens.last_mut() {
+									None => panic!("Attribute found as first token, which is not meant to happen"),
+									Some(last_token) =>	{
+										last_token.attributes = current_token.content.clone();
+									},
+								}
+								current_token = Token::new();
+							}
+						},
 						_ => (),
 					}
 				},
@@ -132,4 +215,53 @@ pub(crate) fn tokenize(input: &str) -> Vec<Token> {
 
 fn push_token(list: &mut Vec<Token>, token: &Token) {
 	if token.content != "" { list.push(token.clone()); }
+}
+
+fn parse_attr(input: &str) -> HashMap<&str, String> {
+	let mut out: HashMap<&str, String> = HashMap::new();
+	let mut current_content = String::new();
+	let mut current_type = "none";
+	let mut attr = String::new();
+	let mut everything_else = String::new();
+	for (_, cha) in input.char_indices() {
+		match current_type {
+			"none" => {
+				match cha {
+					'.' => current_type = "class",
+					'#' => current_type = "id",
+					_ => everything_else += &cha.to_string(),
+				}
+			},
+			"class" => {
+				match cha {
+					' ' => {
+						match out.get("class") {
+							None => {
+								out.insert("class", current_content);
+							},
+							Some(x) => {
+								out.insert("class", x.to_owned() + &current_content);
+							},
+						}
+						current_content = String::new();
+						current_type = "none";
+					},
+					_ => current_content += &cha.to_string(),
+				}
+			},
+			"id" => {
+				match cha {
+					' ' => {
+						out.insert("id", current_content);
+						current_content = String::new();
+						current_type = "none";
+					},
+					_ => current_content += &cha.to_string(),
+				}
+			},
+			_ => panic!("Attribute parser reached undefined state"),
+		}
+	}
+	out.insert("else", everything_else);
+	out
 }
