@@ -37,17 +37,19 @@ pub(crate) fn tokenize(input: &str) -> Vec<Token> {
 		} else {
 			match current_token.class {
 				TokenType::Put => {
-					match cha {
-						'*' => {
-							push_token(&mut tokens, &current_token);
-							current_token = Token::init(TokenType::Bold, cha.to_string());
-						},
-						'_' => {
-							push_token(&mut tokens, &current_token);
-							current_token = Token::init(TokenType::Italic, cha.to_string());
-						},
-						_ => current_token.content += &cha.to_string(),
-					}
+					if !escaping {
+						match cha {
+							'*' => {
+								push_token(&mut tokens, &current_token);
+								current_token = Token::init(TokenType::Bold, cha.to_string());
+							},
+							'_' => {
+								push_token(&mut tokens, &current_token);
+								current_token = Token::init(TokenType::Italic, cha.to_string());
+							},
+							_ => current_token.content += &cha.to_string(),
+						}
+					} else { current_token.content += &cha.to_string(); }
 				},
 				TokenType::Bold => {
 					current_token.content += &cha.to_string();
@@ -55,9 +57,8 @@ pub(crate) fn tokenize(input: &str) -> Vec<Token> {
 						'*' => {
 							if current_token.content == "**" && !escaping { current_token.class = TokenType::Strong; }
 							else if !escaping {
-								current_token.class = TokenType::Put;
 								push_token(&mut tokens, &Token::init(TokenType::Bold, String::from("*")));
-								push_token(&mut tokens, &Token::init(TokenType::Put, current_token.content[1..current_token.content.len()-1].to_string()));
+								tokens.append(&mut tokenize(&current_token.content[1..current_token.content.len()-1]));
 								push_token(&mut tokens, &Token::init(TokenType::Bold, String::from("*")));
 								current_token = Token::init(TokenType::Put, String::new());
 							}
@@ -73,7 +74,7 @@ pub(crate) fn tokenize(input: &str) -> Vec<Token> {
 							if !escaping && !strong_wait { strong_wait = true; }
 							else if !escaping && strong_wait {
 								push_token(&mut tokens, &Token::init(TokenType::Strong, String::from("**")));
-								push_token(&mut tokens, &Token::init(TokenType::Put, current_token.content[2..current_token.content.len()-2].to_string()));
+								tokens.append(&mut tokenize(&current_token.content[2..current_token.content.len()-2]));
 								push_token(&mut tokens, &Token::init(TokenType::Strong, String::from("**")));
 								current_token = Token::init(TokenType::Put, String::new());
 								strong_wait = false;
@@ -91,7 +92,7 @@ pub(crate) fn tokenize(input: &str) -> Vec<Token> {
 							else if !escaping {
 								current_token.class = TokenType::Put;
 								push_token(&mut tokens, &Token::init(TokenType::Italic, String::from("_")));
-								push_token(&mut tokens, &Token::init(TokenType::Put, current_token.content[1..current_token.content.len()-1].to_string()));
+								tokens.append(&mut tokenize(&current_token.content[1..current_token.content.len()-1]));
 								push_token(&mut tokens, &Token::init(TokenType::Italic, String::from("_")));
 								current_token = Token::init(TokenType::Put, String::new());
 							}
@@ -107,7 +108,7 @@ pub(crate) fn tokenize(input: &str) -> Vec<Token> {
 							if !escaping && !strong_wait { strong_wait = true; }
 							else if !escaping && strong_wait {
 								push_token(&mut tokens, &Token::init(TokenType::Emphasis, String::from("__")));
-								push_token(&mut tokens, &Token::init(TokenType::Put, current_token.content[2..current_token.content.len()-2].to_string()));
+								tokens.append(&mut tokenize(&current_token.content[2..current_token.content.len()-2]));
 								push_token(&mut tokens, &Token::init(TokenType::Emphasis, String::from("__")));
 								current_token = Token::init(TokenType::Put, String::new());
 								strong_wait = false;
@@ -130,5 +131,5 @@ pub(crate) fn tokenize(input: &str) -> Vec<Token> {
 }
 
 fn push_token(list: &mut Vec<Token>, token: &Token) {
-	list.push(token.clone());
+	if token.content != "" { list.push(token.clone()); }
 }
