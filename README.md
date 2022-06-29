@@ -34,8 +34,6 @@ Spans are to be surrounded with at signs (`@`).
 
 Inline code is to be surrounded with backticks.
 
-For example, `**text**{#hey}` would be parsed into `<strong id="hey">text</strong>`, and `[link](ampersandia.net){rel="me"}` would be parsed into `<a href="ampersandia.net" rel="me">link</a>`.
-
 ### Headers
 
 Headers are done the same way as in Markdown, with sequences of hashtags (`#`).
@@ -43,6 +41,8 @@ Headers are done the same way as in Markdown, with sequences of hashtags (`#`).
 ### Attributes
 
 Everything mentioned here can have id, class, and any HTML attribute you might care about. Simply do this `{#id .class1 .class2 attribute="value"}` after the affected part, without a space in between.
+
+For example, `**text**{#hey}` would be parsed into `<strong id="hey">text</strong>`, and `[link](ampersandia.net){rel="me"}` would be parsed into `<a href="ampersandia.net" rel="me">link</a>`.
 
 To give attributes to a paragraph simply start the paragraph with an attribute sequence.
 
