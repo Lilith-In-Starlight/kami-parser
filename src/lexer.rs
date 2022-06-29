@@ -221,7 +221,6 @@ fn parse_attr(input: &str) -> HashMap<&str, String> {
 	let mut out: HashMap<&str, String> = HashMap::new();
 	let mut current_content = String::new();
 	let mut current_type = "none";
-	let mut attr = String::new();
 	let mut everything_else = String::new();
 	for (_, cha) in input.char_indices() {
 		match current_type {
@@ -235,14 +234,14 @@ fn parse_attr(input: &str) -> HashMap<&str, String> {
 			"class" => {
 				match cha {
 					' ' => {
+						let mut classc = current_content.clone();
 						match out.get("class") {
-							None => {
-								out.insert("class", current_content);
-							},
 							Some(x) => {
-								out.insert("class", x.to_owned() + &current_content);
+								classc = current_content + &x.clone();
 							},
+							None => (),
 						}
+						out.insert("class", classc);
 						current_content = String::new();
 						current_type = "none";
 					},
