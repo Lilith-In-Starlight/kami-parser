@@ -16,7 +16,7 @@ They can contain attributes as well. This one has a class.
 
 ={} This paragraph is justified
 
->{#rightalign} This one is right-aligned and has an ID
+{#rightalign} This one is right-aligned and has an ID
 
 `This is inline code` (yes, it can have attributes). Code blocks are the same but they have three backticks
 
