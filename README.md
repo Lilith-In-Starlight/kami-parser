@@ -8,9 +8,9 @@ Kami files should use the `.km` extension, as in `file.km`.
 
 Seeing the similarities between Markdown and Kami, you might wonder why I'd bother making this. The reason is simple: Markdown is too human-centric. Of course, there is no one Markdown flavor, but the most popular ones just focus too much on being something you can guess, and not something you can use. The main culprit is commonmark, which I will never forgive, and if your project uses it you should reconsider every choice you have made until you realize what led you to deciding that using commonmark is acceptable, and spend the next couple years doing your best to undo those past mistakes.
 
-The rude bits of that are entirely performative, by the way. Use whatever you want (just please let people mod it).
+The rude bits of that are entirely performative, by the way. I understand that the goals of things like commonmark are just different than (and conflicting with) my own goals. Use whatever you think is best for your project, just let people mod it.
 
-Kami is designed under the idea that markup languages are NOT like programming languages in the ways that they achieve their goals. A programming language is designed for humans, if it was more machine-centric you'd obtain an assembly language. A markup language should be somewhere in the middle. HTML sucks to use because of how machine-centric it is, but Markdown or Textile can be limiting because they focus too much on human readability and use-cases. In a world of these extremes, Kami tries to stand in the middle.
+Kami is designed under the idea that markup languages are not like programming languages in the ways that they achieve their goals. A programming language is designed for humans, if it was more machine-centric you'd obtain an assembly language. A markup language should be somewhere in the middle. HTML sucks to use because of how machine-centric it is, but Markdown or Textile can be limiting because they focus too much on human readability and use-cases. In a world of these extremes, Kami tries to stand in the middle.
 
 Human readability is still a goal, but it's a goal that should never limit what can be done. Kami is strictly an intermediate between thoughts and HTML, and is not meant to be read by anyone, which, to me, is what markup languages should strive for.
 
