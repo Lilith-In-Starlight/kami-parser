@@ -6,7 +6,7 @@ Kami files should use the `.km` extension, as in `file.km`.
 
 ## Philosophy
 
-Seeing the similarities between Markdown and Kami, you might wonder why I'd bother making this. The reason is simple: Markdown is too human-centric. Of course, there is no one Markdown flavor, but the most popular ones just focus too much on being something you can guess, and not something you can use. The main culprit is commonmark, which I will never forgive, and if your project uses it you should reconsider every choice you have made until you realize what led you to deciding that using commonmark is acceptable, and spend the next couple years doing your best to undo those past mistakes.
+Seeing the similarities between Markdown and Kami, you might wonder why I'd bother making this. The reason is simple: Markdown is too human-centric. Of course, there is no one Markdown flavor, but the ones I've seen just focus too much on being something you can guess and read, and not something you can use. The main culprit is commonmark (though I'm pretty sure it just intends to be documentation for the most common Markdown patterns, and isn't meant to be used), which I will never forgive, and if your project uses it you should reconsider every choice you have made until you realize what led you to deciding that using commonmark is acceptable, and spend the next couple years doing your best to undo those past mistakes.
 
 The rude bits of that are entirely performative, by the way. I understand that the goals of things like commonmark are just different than (and conflicting with) my own goals. Use whatever you think is best for your project, just let people mod it.
 
@@ -20,7 +20,7 @@ Kami is ultimately meant to fulfill my needs, it is what I want out of a Markup 
 
 ### Bold italians and strong empaths (Bold, Italic, Strong and Emphasis)
 
-Kami distinguishes Bold from Strong and Italic from Emphasis. This is because screen readers care about the distinction. Bold is surrounded with asteriscs (`*`) and Italics are surrounded by underscores (`_`). Strong and emphasis are the same, just doubled (`**` and `__`).
+Kami distinguishes Bold from Strong and Italic from Emphasis. This is because screen readers care about the distinction. Bold is surrounded with asteriscs (`*`) and Italics are surrounded by underscores (`_`). Strong and emphasis are the same, just doubled (`**` and `__`). I used to struggle remembering this (Textile does it), so I came up with the mnemonic you see in the title of this section. I just memorized it along with this sequence `* _ ** __`. Hopefully that can help you too.
 
 ### Hyperlinks
 
