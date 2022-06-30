@@ -1,5 +1,3 @@
-mod lexer;
-
 use crate::lexer::tokenize;
 use crate::lexer::Token;
 use crate::lexer::TokenType;

@@ -1,4 +1,5 @@
 mod syntax;
+mod lexer;
 
 use std::fs;
 use std::env;
