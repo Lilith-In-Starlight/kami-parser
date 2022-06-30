@@ -56,7 +56,7 @@ fn parse_attr(inp: &str) -> String {
 }
 
 
-pub fn parse_multiline(input: &str) -> String {
+pub fn parse(input: &str) -> String {
 	let mut out = String::new();
 	for line in input.lines() {
 		let tokens = tokenize(line);
