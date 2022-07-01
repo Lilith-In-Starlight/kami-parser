@@ -1,0 +1,38 @@
+# Example Kami File
+This kami file contains all the features that a Kami interpreter should have:
+
+*Bold* and **strong** text must be differentiated. Same thing goes for _italicized_ and __emphasized__. \*They can be escaped\* \_like this\_.
+
+It has to be possible to have them *_in combination_ like this*
+
+This is a [hyperlink](ampersandia.net){#example rel="me"}, they can also have ID, Class and all sorts of HTML attributes
+
+##{.subtitle} Headers
+They can contain attributes as well. This one has a class.
+
+~Subscript~ and ^supercript^ can very importantly contain spaces.
+
+{.example-p} A paragraph can also contain attributes
+
+This paragraph is justified
+
+{#rightalign} This one is right-aligned and has an ID
+
+`This is inline code` (yes, it can have attributes). Code blocks are the same but they have three backticks
+
+@this is a span@ (yep. it can also have attributes)
+
+<link>
+
+* This is a normal list
+* Without numbered stuff
+* {#id .class} This one has ID and Class
+
+{#id .class}
+* list with attributes
+
+#. This is a
+#. Numbered list
+
+{#id .class}
+#. numbered list with attributes
