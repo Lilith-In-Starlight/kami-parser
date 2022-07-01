@@ -38,13 +38,23 @@ Inline code is to be surrounded with backticks.
 
 Headers are done the same way as in Markdown, with sequences of hashtags (`#`).
 
+## Lists
+
+Unordered lists are marked with a `* ` at the beginning of a paragraph. The space is important, and is part of the token. Ordered lists are marked with a `#. ` at the beginning of the paragraph. The space is also part of the token.
+
 ### Attributes
 
-Everything mentioned here can have id, class, and any HTML attribute you might care about. Simply do this `{#id .class1 .class2 attribute="value"}` after the affected part, without a space in between.
+Everything mentioned here can have id, class, and any HTML attribute you might care about. Simply do this `{#id .class1 .class2 attribute="value"}` after the affected part, without a space in between. Note that tokens that have spaces as their last character (like in the case of lists) _don't_ get that space removed. They keep that space.
 
 For example, `**text**{#hey}` would be parsed into `<strong id="hey">text</strong>`, and `[link](ampersandia.net){rel="me"}` would be parsed into `<a href="ampersandia.net" rel="me">link</a>`.
 
-To give attributes to a paragraph simply start the paragraph with an attribute sequence.
+To give attributes to a paragraph simply start the paragraph with an attribute sequence. To give attributes to format blocks (like the `<ul> <ol>` parts of lists) just put an attribute sequence before any of the elements of the block, like this:
+
+
+```
+{#id .class)
+* list element
+```
 
 ### Escaping
 
