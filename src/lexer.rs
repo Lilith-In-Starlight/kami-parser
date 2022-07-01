@@ -17,7 +17,9 @@ pub(crate) enum TokenType {
 	Strike,
 	Under,
 	Header,
-	Html
+	Html,
+	List,
+	NumberedList,
 }
 
 #[derive(Clone, Debug)]
@@ -47,6 +49,8 @@ pub(crate) fn tokenize(input: &str) -> Vec<Token> {
 	let mut tokens:Vec<Token> = vec![];
 	let mut current_token: Token = Token::new();
 	let mut escaping = false;
+
+	let mut nlist_wait_space = false;
 
 	let mut strong_wait = false; // Variable used for closing a STRONG token
 	for (pos, cha) in input.char_indices() {
@@ -141,7 +145,16 @@ pub(crate) fn tokenize(input: &str) -> Vec<Token> {
 								current_token = Token::new();
 							}
 						},
-						' ' => if current_token.content == "* " && !escaping { current_token.class = TokenType::Put },
+						' ' => {
+							if current_token.content == "* " && !escaping {
+								if pos != 1 { current_token.class = TokenType::Put;	}
+								else {
+									current_token.class = TokenType::List;
+									push_token(&mut tokens, &current_token);
+									current_token = Token::new();
+								}
+							}
+						},
 						_ => (),
 					}
 				},
@@ -338,18 +351,40 @@ pub(crate) fn tokenize(input: &str) -> Vec<Token> {
 				},
 				TokenType::Header => {
 					match cha {
-						'#' => current_token.content += &cha.to_string(),
+						'#' => {
+							nlist_wait_space = false;
+							current_token.content += &cha.to_string();
+						},
 						'{' => {
+							nlist_wait_space = false;
 							push_token(&mut tokens, &current_token);
 							current_token = Token::init(TokenType::Attr, cha.to_string());
-						}
+						},
 						' ' => {
-							push_token(&mut tokens, &current_token);
-							current_token = Token::new();
+							if !nlist_wait_space {
+								push_token(&mut tokens, &current_token);
+								current_token = Token::new();
+							} else {
+								current_token.class = TokenType::NumberedList;
+								push_token(&mut tokens, &current_token);
+								current_token = Token::new();
+							}
+							nlist_wait_space = false;
+						},
+						'.' => {
+							if pos == 1 { nlist_wait_space = true; }
+							else { 
+								push_token(&mut tokens, &current_token);
+								current_token = Token::new();
+								current_token.content += &cha.to_string();
+								nlist_wait_space = false;
+							}
 						}
 						_ => {
+							nlist_wait_space = false;
 							push_token(&mut tokens, &current_token);
 							current_token = Token::new();
+							current_token.content += &cha.to_string();
 						}
 					}
 				},

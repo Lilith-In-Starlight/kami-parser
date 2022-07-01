@@ -6,7 +6,7 @@ fn parse_attr(inp: &str) -> String {
 	if inp == "{}" || inp == "" { 
 		return String::new()
 	}
-	let input = &inp[1..inp.len()-1];
+	let input = &inp[1..&inp.len()-1];
 	let mut id = String::new();
 	let mut class = String::new();
 	let mut current_type = "none";
@@ -56,19 +56,56 @@ fn parse_attr(inp: &str) -> String {
 
 pub fn parse(input: &str) -> String {
 	let mut out = String::new();
+	let mut list_type = "";
 	for line in input.lines() {
 		let tokens = tokenize(line);
 		match tokens.first() {
 			None => out += "\n",
 			Some(first_token) => {
+				match list_type {
+					"ul" => {
+						match first_token.class {
+							TokenType::List => (),
+							_ => {
+								list_type = "";
+								out += "\n</ul>\n";
+							}
+						}
+					},
+					"ol" => {
+						match first_token.class {
+							TokenType::NumberedList => (),
+							_ => {
+								list_type = "";
+								out += "\n</ol>\n";
+							}
+						}
+					},
+					_ => (),
+				}
 				match first_token.class {
 					TokenType::Header => out += &("<h".to_owned() + &first_token.content.len().to_string() + " " + &parse_attr(&first_token.attributes) + ">" + &parse_line(&tokens[1..].to_vec()) + "</h" + &first_token.content.len().to_string() + ">\n"),
 					TokenType::Attr => out += &("<p ".to_owned() + &parse_attr(&first_token.content) + ">" + &parse_line(&tokens[1..].to_vec()) + "</p>\n"),
+					TokenType::List => {
+						if list_type != "ul" { out += "\n<ul>\n"; }
+						list_type = "ul";
+						out += &("<li ".to_owned() + &parse_attr(&first_token.attributes) + ">" + &parse_line(&tokens[1..].to_vec()) + "</li>\n");
+					},
+					TokenType::NumberedList => {
+						if list_type != "ol" { out += "\n<ol>\n"; }
+						list_type = "ol";
+						out += &("<li ".to_owned() + &parse_attr(&first_token.attributes) + ">" + &parse_line(&tokens[1..].to_vec()) + "</li>\n");
+					},
 					TokenType::Html => out += &first_token.content,
 					_ => out += &("<p>".to_owned() + &parse_line(&tokens) + "</p>\n"),
 				}
 			}
 		}
+	}
+	match list_type {
+		"ul" => out += "\n</ul>\n",
+		"ol" => out += "\n</ol>\n",
+		_ => (),
 	}
 	out
 }
