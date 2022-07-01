@@ -18,6 +18,7 @@ pub(crate) enum TokenType {
 	Html,
 	List,
 	NumberedList,
+	LineBreak,
 }
 
 #[derive(Clone, Debug)]
@@ -126,6 +127,16 @@ pub(crate) fn tokenize(input: &str) -> Vec<Token> {
 											_ => current_token = Token::init(TokenType::Attr, cha.to_string()),
 										}
 									}
+								}
+							},
+							'n' => {
+								if escaping {
+									push_token(&mut tokens, &current_token);
+									current_token = Token::init(TokenType::LineBreak, String::from("BR"));
+									push_token(&mut tokens, &current_token);
+									current_token = Token::new();
+								} else {
+									current_token.content += &cha.to_string();
 								}
 							},
 							_ => current_token.content += &cha.to_string(),
