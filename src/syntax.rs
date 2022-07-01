@@ -57,10 +57,13 @@ fn parse_attr(inp: &str) -> String {
 pub fn parse(input: &str) -> String {
 	let mut out = String::new();
 	let mut list_type = "";
+	let mut expect_block:String = String::new();
 	for line in input.lines() {
 		let tokens = tokenize(line);
 		match tokens.first() {
-			None => out += "\n",
+			None => {
+				if list_type == "" { out += "\n"; }
+			},
 			Some(first_token) => {
 				match list_type {
 					"ul" => {
@@ -68,7 +71,8 @@ pub fn parse(input: &str) -> String {
 							TokenType::List => (),
 							_ => {
 								list_type = "";
-								out += "\n</ul>\n";
+								out += "</ul>\n";
+								expect_block = String::new();
 							}
 						}
 					},
@@ -77,7 +81,8 @@ pub fn parse(input: &str) -> String {
 							TokenType::NumberedList => (),
 							_ => {
 								list_type = "";
-								out += "\n</ol>\n";
+								out += "</ol>\n";
+								expect_block = String::new();
 							}
 						}
 					},
@@ -85,14 +90,30 @@ pub fn parse(input: &str) -> String {
 				}
 				match first_token.class {
 					TokenType::Header => out += &("<h".to_owned() + &first_token.content.len().to_string() + " " + &parse_attr(&first_token.attributes) + ">" + &parse_line(&tokens[1..].to_vec()) + "</h" + &first_token.content.len().to_string() + ">\n"),
-					TokenType::Attr => out += &("<p ".to_owned() + &parse_attr(&first_token.content) + ">" + &parse_line(&tokens[1..].to_vec()) + "</p>\n"),
+					TokenType::Attr => {
+						if tokens.len() != 1 {
+							out += &("<p ".to_owned() + &parse_attr(&first_token.content) + ">" + &parse_line(&tokens[1..].to_vec()) + "</p>\n");
+						} else {
+							expect_block = parse_attr(&first_token.content);
+						}
+					},
 					TokenType::List => {
-						if list_type != "ul" { out += "\n<ul>\n"; }
+						let mut attr = String::new();
+						if expect_block != "" {
+							attr = expect_block.clone();
+							expect_block = String::new();
+						}
+						if list_type != "ul" { out += &("\n<ul ".to_owned() + &attr + ">\n"); }
 						list_type = "ul";
 						out += &("<li ".to_owned() + &parse_attr(&first_token.attributes) + ">" + &parse_line(&tokens[1..].to_vec()) + "</li>\n");
 					},
 					TokenType::NumberedList => {
-						if list_type != "ol" { out += "\n<ol>\n"; }
+						let mut attr = String::new();
+						if expect_block != "" {
+							attr = expect_block.clone();
+							expect_block = String::new();
+						}
+						if list_type != "ol" { out += &("\n<ol ".to_owned() + &attr + ">\n"); }
 						list_type = "ol";
 						out += &("<li ".to_owned() + &parse_attr(&first_token.attributes) + ">" + &parse_line(&tokens[1..].to_vec()) + "</li>\n");
 					},
@@ -103,8 +124,8 @@ pub fn parse(input: &str) -> String {
 		}
 	}
 	match list_type {
-		"ul" => out += "\n</ul>\n",
-		"ol" => out += "\n</ol>\n",
+		"ul" => out += "</ul>\n",
+		"ol" => out += "</ol>\n",
 		_ => (),
 	}
 	out
