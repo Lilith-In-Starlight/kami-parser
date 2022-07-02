@@ -38,7 +38,7 @@ Kami distinguishes Bold from Strong and Italic from Emphasis. This is because sc
 
 Subscript is surrounded with `~` and superscript is surrounded with a `^`. They _can_ contain spaces.
 
-## Underline and Strikethrough
+### Underline and Strikethrough
 
 Strikethrough text is surrounded by dashes (`-`) and underlined text is surrounded by double dashes. This syntax is subject to change because I think it sucks.
 
