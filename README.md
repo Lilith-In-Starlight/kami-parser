@@ -4,6 +4,17 @@ Kami is a machine-first human-also-first markup language, designed not for human
 
 Kami files should use the `.km` extension, as in `file.km`.
 
+## Usage (In A Rust Crate)
+
+The only public method is `syntax::parse()`, which takes in a string of characters and outputs an HTML string.
+
+```rust
+use kami_parser::syntax;
+
+fn main() {
+	println!("{}", syntax::parse("*bold text*")); // <b >bold text</b>
+}
+
 ## Philosophy
 
 Seeing the similarities between Markdown and Kami, you might wonder why I'd bother making this. The reason is simple: Markdown is too human-centric. Of course, there is no one Markdown flavor, but the ones I've seen just focus too much on being something you can guess and read, and not something you can use. The main culprit is commonmark (though I'm pretty sure it just intends to be documentation for the most common Markdown patterns, and isn't meant to be used), which I will never forgive, and if your project uses it you should reconsider every choice you have made until you realize what led you to deciding that using commonmark is acceptable, and spend the next couple years doing your best to undo those past mistakes.
@@ -38,7 +49,7 @@ Inline code is to be surrounded with backticks.
 
 Headers are done the same way as in Markdown, with sequences of hashtags (`#`).
 
-## Lists
+### Lists
 
 Unordered lists are marked with a `* ` at the beginning of a paragraph. The space is important, and is part of the token. Ordered lists are marked with a `#. ` at the beginning of the paragraph. The space is also part of the token.
 
