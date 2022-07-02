@@ -14,6 +14,7 @@ use kami_parser::syntax;
 fn main() {
 	println!("{}", syntax::parse("*bold text*")); // <b >bold text</b>
 }
+```
 
 ## Philosophy
 
