@@ -428,6 +428,7 @@ pub(crate) fn tokenize(input: &str) -> Vec<Token> {
 				_ => panic!("Reached undefined token type {:?}", current_token.class),
 			}
 		}
+		println!("{} {}", escaping, cha);
 		if escaping && cha != '\\' { escaping = false; }
 	}
 	if !current_token.content.is_empty() {
