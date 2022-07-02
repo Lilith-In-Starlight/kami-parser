@@ -64,70 +64,92 @@ pub(crate) fn tokenize(input: &str) -> Vec<Token> {
 					if !escaping {
 						match cha {
 							'*' => {
-								push_token(&mut tokens, &current_token);
-								current_token = Token::init(TokenType::Bold, cha.to_string());
+								if !escaping {
+									push_token(&mut tokens, &current_token);
+									current_token = Token::init(TokenType::Bold, cha.to_string());
+								} else { current_token.content += &cha.to_string(); }
 							},
 							'_' => {
-								push_token(&mut tokens, &current_token);
-								current_token = Token::init(TokenType::Italic, cha.to_string());
+								if !escaping {
+									push_token(&mut tokens, &current_token);
+									current_token = Token::init(TokenType::Italic, cha.to_string());
+								} else { current_token.content += &cha.to_string(); }
 							},
 							'[' => {
-								push_token(&mut tokens, &current_token);
-								current_token = Token::init(TokenType::LinkName, cha.to_string());
+								if !escaping {
+									push_token(&mut tokens, &current_token);
+									current_token = Token::init(TokenType::LinkName, cha.to_string());
+								} else { current_token.content += &cha.to_string(); }
 							},
 							'~' => {
-								push_token(&mut tokens, &current_token);
-								current_token = Token::init(TokenType::Sub, cha.to_string());
+								if !escaping {
+									push_token(&mut tokens, &current_token);
+									current_token = Token::init(TokenType::Sub, cha.to_string());
+								} else { current_token.content += &cha.to_string(); }
 							},
 							'^' => {
-								push_token(&mut tokens, &current_token);
-								current_token = Token::init(TokenType::Sup, cha.to_string());
+								if !escaping {
+									push_token(&mut tokens, &current_token);
+									current_token = Token::init(TokenType::Sup, cha.to_string());
+								} else { current_token.content += &cha.to_string(); }
 							},
 							'`' => {
-								push_token(&mut tokens, &current_token);
-								current_token = Token::init(TokenType::Code, cha.to_string());
+								if !escaping {
+									push_token(&mut tokens, &current_token);
+									current_token = Token::init(TokenType::Code, cha.to_string());
+								} else { current_token.content += &cha.to_string(); }
 							},
 							'@' => {
-								push_token(&mut tokens, &current_token);
-								current_token = Token::init(TokenType::Span, cha.to_string());
+								if !escaping {
+									push_token(&mut tokens, &current_token);
+									current_token = Token::init(TokenType::Span, cha.to_string());
+								} else { current_token.content += &cha.to_string(); }
 							},
 							'-' => {
-								push_token(&mut tokens, &current_token);
-								current_token = Token::init(TokenType::Strike, cha.to_string());
+								if !escaping {
+									push_token(&mut tokens, &current_token);
+									current_token = Token::init(TokenType::Strike, cha.to_string());
+								} else { current_token.content += &cha.to_string(); }
 							},
 							'#' => {
 								if pos == 0 { current_token = Token::init(TokenType::Header, cha.to_string()); }
 								else { current_token.content += &cha.to_string(); }
 							},
 							'<' => {
-								push_token(&mut tokens, &current_token);
-								current_token = Token::init(TokenType::Html, cha.to_string());
+								if !escaping {
+									push_token(&mut tokens, &current_token);
+									current_token = Token::init(TokenType::Html, cha.to_string());
+								} else { current_token.content += &cha.to_string(); }
 							},
 							'(' => {
-								match tokens.last() {
-									None => current_token.content += &cha.to_string(),
-									Some(last_token) => {
-										match last_token.class {
-											TokenType::LinkName => current_token = Token::init(TokenType::LinkDir, cha.to_string()),
-											_ => current_token.content += &cha.to_string(),
+								if !escaping {
+									match tokens.last() {
+										None => current_token.content += &cha.to_string(),
+										Some(last_token) => {
+											match last_token.class {
+												TokenType::LinkName => current_token = Token::init(TokenType::LinkDir, cha.to_string()),
+												_ => current_token.content += &cha.to_string(),
+											}
 										}
 									}
-								}
+								} else { current_token.content += &cha.to_string(); }
 							},
 							'{' => {
-								push_token(&mut tokens, &current_token);
-								match tokens.last() {
-									None => current_token = Token::init(TokenType::Attr, cha.to_string()),
-									Some(last_token) => {
-										match last_token.class {
-											TokenType::Put => {
-												tokens.pop();
-												current_token.content += &cha.to_string();
-											},
-											_ => current_token = Token::init(TokenType::Attr, cha.to_string()),
+								if !escaping {
+									push_token(&mut tokens, &current_token);
+									match tokens.last() {
+										None => current_token = Token::init(TokenType::Attr, cha.to_string()),
+										Some(last_token) => {
+											match last_token.class {
+												TokenType::Put => {
+													tokens.pop();
+													current_token.content += &cha.to_string();
+												},
+												_ => current_token = Token::init(TokenType::Attr, cha.to_string()),
+											}
 										}
 									}
-								}
+								} else { current_token.content += &cha.to_string(); }
 							},
 							'n' => {
 								if escaping {
