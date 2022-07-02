@@ -34,6 +34,14 @@ Kami is ultimately meant to fulfill my needs, it is what I want out of a Markup 
 
 Kami distinguishes Bold from Strong and Italic from Emphasis. This is because screen readers care about the distinction. Bold is surrounded with asteriscs (`*`) and Italics are surrounded by underscores (`_`). Strong and emphasis are the same, just doubled (`**` and `__`). I used to struggle remembering this (Textile does it), so I came up with the mnemonic you see in the title of this section. I just memorized it along with this sequence `* _ ** __`. Hopefully that can help you too.
 
+### Subscript and Superscript
+
+Subscript is surrounded with `~` and superscript is surrounded with a `^`. They _can_ contain spaces.
+
+## Underline and Strikethrough
+
+Strikethrough text is surrounded by dashes (`-`) and underlined text is surrounded by double dashes. This syntax is subject to change because I think it sucks.
+
 ### Hyperlinks
 
 Hyperlinks use markdown format: `[Visible text](destination)`.
