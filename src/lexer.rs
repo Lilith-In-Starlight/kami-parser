@@ -57,7 +57,13 @@ pub(crate) fn tokenize(input: &str) -> Vec<Token> {
 			if escaping {
 				escaping = false;
 				current_token.content += &cha.to_string();
-			} else { escaping = true; }
+			} else {
+				escaping = true;
+				match current_token.class {
+					TokenType::Bold | TokenType::Italic | TokenType::Strong | TokenType::Emphasis | TokenType::LinkName | TokenType::Sub | TokenType::Sup | TokenType::Code | TokenType::Span | TokenType::Under | TokenType::Strike => current_token.content +=  &cha.to_string(),
+					_ => (),
+				}
+			}
 		} else {
 			match current_token.class {
 				TokenType::Put => {
