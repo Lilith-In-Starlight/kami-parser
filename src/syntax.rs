@@ -279,7 +279,7 @@ fn parse_line(input: &Vec<Token>) -> String {
 			TokenType::Sub => out += &("<sub ".to_owned() + &parse_attr(&i.attributes) + ">" + &parse_line(&i.subtokens) + "</sub>"),
 			TokenType::Sup => out += &("<sup ".to_owned() + &parse_attr(&i.attributes) + ">" + &parse_line(&i.subtokens) + "</sup>"),
 			TokenType::Span => out += &("<span ".to_owned() + &parse_attr(&i.attributes) + ">" + &parse_line(&i.subtokens) + "</span>"),
-			TokenType::Code => out += &("<code ".to_owned() + &parse_attr(&i.attributes) + ">" + &parse_line(&i.subtokens) + "</code>"),
+			TokenType::Code => out += &("<code ".to_owned() + &parse_attr(&i.attributes) + ">" + &i.content + "</code>"),
 			TokenType::LineBreak => out += "<br>",
 			TokenType::LinkName => {
 				let parsed_name = parse_line(&i.subtokens);
