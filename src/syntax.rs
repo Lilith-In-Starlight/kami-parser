@@ -1,8 +1,10 @@
 use crate::lexer::tokenize;
+use crate::multiline_lexer::block_lexer;
 use crate::lexer::Token;
 use crate::lexer::TokenType;
+use crate::multiline_lexer::get_list_depth;
 
-fn parse_attr(inp: &str) -> String {
+pub(crate) fn parse_attr(inp: &str) -> String {
 	if inp == "{}" || inp == "" { 
 		return String::new()
 	}
@@ -53,40 +55,167 @@ fn parse_attr(inp: &str) -> String {
 	out + &everything_else
 }
 
+pub(crate) fn parse(input: &str) -> String {
+	let mut tokvec:Vec<Vec<Token>> = Vec::new();
+	let mut out = String::new();
+	for i in input.lines() {
+		tokvec.push(tokenize(i));
+	}
+	let blocks = block_lexer(&tokvec);
+	for block in blocks {
+		match block.class {
+			TokenType::Para => out += &("<p ".to_owned() + &parse_attr(&block.attributes) + ">" + &parse_line(&block.subtokens) + "</p>\n"),
+			TokenType::Header => out += &("<h".to_owned() + &block.content.len().to_string() + " " + &parse_attr(&block.attributes) + ">" + &parse_line(&block.subtokens) + "</h" + &block.content.len().to_string() + ">\n"),
+			TokenType::ListBlock => {
+				let mut list_types: Vec<&str> = Vec::new();
+				let mut last_level = 0;
+				for i in block.subtokens.iter() {
+					match i.class {
+						TokenType::UList => {
+							match list_types.last(){
+								None => {
+									out += &("<ul ".to_owned() + &parse_attr(&i.attributes) + ">\n");
+									last_level = 1;
+									list_types.push("ul");
+									out += &parse_line(&i.subtokens);
+								},
+								Some(x) => {
+									let last_depth = get_list_depth(&i);
+									if x == &"ul" {
+										if last_depth > last_level {
+											out += &("<ul ".to_owned() + &parse_attr(&i.attributes) + ">\n");
+											list_types.push("ul");
+										} else if last_depth < last_level {
+											for _ in last_depth..last_level {
+												out += &("</".to_string() + list_types.pop().unwrap() + ">\n"); // This should close the latest opened list type
+											}
+										}
+										last_level = last_depth;
+										out += &parse_line(&i.subtokens);
+									} else {
+										if last_depth < last_level {
+											for _ in last_depth..last_level {
+												out += &("</".to_string() + list_types.pop().unwrap() + ">\n"); // This should close the latest opened list type
+											}
+											if let Some(x) = list_types.last() {
+												if x == &"ol" {
+													out += &("</".to_string() + list_types.pop().unwrap() + ">\n"); // This should close the latest opened list type
+													last_level -= 1;
+												}
+											}
+										}
+										out += &("<ul ".to_owned() + &parse_attr(&i.attributes) + ">\n");
+										last_level += 1;
+										list_types.push("ul");
+										out += &parse_line(&i.subtokens);
+									}
+								}
+							}
+						},
+						TokenType::OList => {
+							match list_types.last(){
+								None => {
+									out += &("<ol ".to_owned() + &parse_attr(&i.attributes) + ">\n");
+									last_level = 1;
+									list_types.push("ol");
+									out += &parse_line(&i.subtokens);
+								},
+								Some(x) => {
+									let last_depth = get_list_depth(&i);
+									if x == &"ol" {
+										if last_depth > last_level {
+											out += &("<ol ".to_owned() + &parse_attr(&i.attributes) + ">\n");
+											list_types.push("ol");
+										} else if last_depth < last_level {
+											for _ in last_depth..last_level {
+												out += &("</".to_string() + list_types.pop().unwrap() + ">\n"); // This should close the latest opened list type
+											}
+										}
+										last_level = last_depth;
+										out += &parse_line(&i.subtokens);
+									} else {
+										if last_depth <= last_level {
+											for _ in last_depth..last_level {
+												out += &("</".to_string() + list_types.pop().unwrap() + ">\n"); // This should close the latest opened list type
+											}
+											if let Some(x) = list_types.last() {
+												if x == &"ul" {
+													out += &("</".to_string() + list_types.pop().unwrap() + ">\n"); // This should close the latest opened list type
+													last_level -= 1;
+												}
+											}
+										}
+										out += &("<ol ".to_owned() + &parse_attr(&i.attributes) + ">\n");
+										last_level += 1;
+										list_types.push("ol");
+										out += &parse_line(&i.subtokens);
+									}
+								}
+							}
+						}
+						_ => ()
+					}
+				}
+				for _ in 0..last_level {
+					match list_types.pop() {
+						None => (),
+						Some(x) => out += &("</".to_string() + x + ">\n"),
+					}// This should close the latest opened list type
+				}
+			}
+			_ => (),
+		}
+	}
+	out
+}
 
-pub fn parse(input: &str) -> String {
+
+/* pub fn parse(input: &str) -> String {
 	let mut out = String::new();
 	let mut list_type = "";
+	let mut list_level = 0;
 	let mut expect_block:String = String::new();
 	for line in input.lines() {
 		let tokens = tokenize(line);
 		match tokens.first() {
 			None => {
-				if list_type == "" { out += "\n"; }
+				if list_type == "" { out += ">\n"; }
 			},
 			Some(first_token) => {
 				match list_type {
 					"ul" => {
 						match first_token.class {
-							TokenType::List => (),
+							TokenType::ListEl => {
+								if list_level < first_token.content.len() {
+									list_level = first_token.content.len();
+									out += "</ul>";
+								}
+							},
 							_ => {
 								list_type = "";
-								out += "</ul>\n";
+								out += "\n</ul>\n";
 								expect_block = String::new();
+								list_level = 0;
 							}
 						}
 					},
 					"ol" => {
 						match first_token.class {
-							TokenType::NumberedList => (),
+							TokenType::NumberedListEl => {
+								if list_level < first_token.content.len() {
+									list_level = first_token.content.len();
+									out += "\n</ol>\n";
+								}
+							},
 							_ => {
 								list_type = "";
 								out += "</ol>\n";
 								expect_block = String::new();
+								list_level = 0;
 							}
 						}
 					},
-					_ => (),
+					_ => list_level = 0,
 				}
 				match first_token.class {
 					TokenType::Header => out += &("<h".to_owned() + &first_token.content.len().to_string() + " " + &parse_attr(&first_token.attributes) + ">" + &parse_line(&tokens[1..].to_vec()) + "</h" + &first_token.content.len().to_string() + ">\n"),
@@ -97,23 +226,29 @@ pub fn parse(input: &str) -> String {
 							expect_block = parse_attr(&first_token.content);
 						}
 					},
-					TokenType::List => {
+					TokenType::ListEl => {
 						let mut attr = String::new();
 						if expect_block != "" {
 							attr = expect_block.clone();
 							expect_block = String::new();
 						}
-						if list_type != "ul" { out += &("\n<ul ".to_owned() + &attr + ">\n"); }
+						if list_type != "ul" || list_level != first_token.content.len() {
+							out += &("\n<ul ".to_owned() + &attr + ">\n"); 
+							list_level = first_token.content.len();
+						}
 						list_type = "ul";
 						out += &("<li ".to_owned() + &parse_attr(&first_token.attributes) + ">" + &parse_line(&tokens[1..].to_vec()) + "</li>\n");
 					},
-					TokenType::NumberedList => {
+					TokenType::NumberedListEl => {
 						let mut attr = String::new();
 						if expect_block != "" {
 							attr = expect_block.clone();
 							expect_block = String::new();
 						}
-						if list_type != "ol" { out += &("\n<ol ".to_owned() + &attr + ">\n"); }
+						if list_type != "ol" || list_level != first_token.content.len() {
+							out += &("\n<ol ".to_owned() + &attr + ">\n");
+							list_level = first_token.content.len();
+						}
 						list_type = "ol";
 						out += &("<li ".to_owned() + &parse_attr(&first_token.attributes) + ">" + &parse_line(&tokens[1..].to_vec()) + "</li>\n");
 					},
@@ -129,7 +264,7 @@ pub fn parse(input: &str) -> String {
 		_ => (),
 	}
 	out
-}
+} */
 
 fn parse_line(input: &Vec<Token>) -> String {
 	let mut out = String::new();
@@ -156,6 +291,7 @@ fn parse_line(input: &Vec<Token>) -> String {
 					}
 				} else { out += &("<a href=\"".to_owned() + &parsed_name + "\" "  + &parse_attr(&i.attributes) + ">" + &parsed_name + "</a>"); }
 			},
+			TokenType::ListEl | TokenType::NumberedListEl => out += &("<li ".to_owned() + &parse_attr(&i.attributes) + ">" + &parse_line(&i.subtokens) + "</li>\n"),
 			TokenType::LinkDir => (),
 			_ => out += &i.content,
 		}

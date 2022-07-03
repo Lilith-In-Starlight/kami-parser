@@ -16,9 +16,13 @@ pub(crate) enum TokenType {
 	Under,
 	Header,
 	Html,
-	List,
-	NumberedList,
+	ListEl,
+	NumberedListEl,
 	LineBreak,
+	Para,
+	UList,
+	OList,
+	ListBlock, 
 }
 
 #[derive(Clone, Debug)]
@@ -30,16 +34,19 @@ pub(crate) struct Token {
 }
 
 impl Token {
-	fn new() -> Self {
+	pub(crate) fn new() -> Self {
 		Self { class: TokenType::Put, content: String::new(), subtokens: Vec::new(), attributes: String::new() }
 	}
-	fn init(class: TokenType, content: String) -> Self {
+	pub(crate) fn n_para() -> Self {
+		Self { class: TokenType::Para, content: String::new(), subtokens: Vec::new(), attributes: String::new() }
+	}
+	pub(crate) fn init(class: TokenType, content: String) -> Self {
 		Self { class: class, content: content, subtokens: Vec::new(), attributes: String::new() }
 	}
-	fn init_sub(class: TokenType, content: Vec<Self>) -> Self {
-		Self { class: class, content: String::new(), subtokens: content, attributes: String::new() }
+	pub(crate) fn init_sub(class: TokenType, tcontent: Vec<Self>, content: String) -> Self {
+		Self { class: class, content: content, subtokens: tcontent, attributes: String::new() }
 	}
-	fn tokenize_content(self: &mut Self, borders: usize) {
+	pub(crate) fn tokenize_content(self: &mut Self, borders: usize) {
 		self.subtokens = tokenize(&self.content[borders..self.content.len()-borders]);
 	}
 }
@@ -186,7 +193,7 @@ pub(crate) fn tokenize(input: &str) -> Vec<Token> {
 							if current_token.content == "* " && !escaping {
 								if pos != 1 { current_token.class = TokenType::Put;	}
 								else {
-									current_token.class = TokenType::List;
+									current_token.class = TokenType::ListEl;
 									push_token(&mut tokens, &current_token);
 									current_token = Token::new();
 								}
@@ -199,18 +206,42 @@ pub(crate) fn tokenize(input: &str) -> Vec<Token> {
 					current_token.content += &cha.to_string();
 					match cha {
 						'*' => {
-							if !escaping && !strong_wait { strong_wait = true; }
-							else if !escaping && strong_wait {
-								current_token.tokenize_content(2);
-								push_token(&mut tokens, &current_token);
-								current_token = Token::new();
-								strong_wait = false;
-							} else { strong_wait = false; }
+							if !(pos == 3 && current_token.content == "***") {
+								if !escaping && !strong_wait { strong_wait = true; }
+								else if !escaping && strong_wait {
+									current_token.tokenize_content(2);
+									push_token(&mut tokens, &current_token);
+									current_token = Token::new();
+									strong_wait = false;
+								} else { strong_wait = false; }
+							} else {
+								current_token.class = TokenType::ListEl;
+							}
 						},
-						' ' => if current_token.content == "** " && !escaping { current_token.class = TokenType::Put },
+						' ' => {
+							if current_token.content == "** " && !escaping {
+								if pos != 2 { current_token.class = TokenType::Put; }
+								else {
+									current_token.class = TokenType::ListEl;
+									push_token(&mut tokens, &current_token);
+									current_token = Token::new();
+								}
+							}
+						},
 						_ => (),
 					}
 				},
+				TokenType::ListEl => {
+					current_token.content += &cha.to_string();
+					match cha {
+						'*' => (),
+						' ' => {
+							push_token(&mut tokens, &current_token);
+							current_token = Token::new();
+						},
+						_ => current_token.class = TokenType::Put,
+					}
+				}
 				TokenType::Italic => {
 					current_token.content += &cha.to_string();
 					match cha {
@@ -402,14 +433,15 @@ pub(crate) fn tokenize(input: &str) -> Vec<Token> {
 								push_token(&mut tokens, &current_token);
 								current_token = Token::new();
 							} else {
-								current_token.class = TokenType::NumberedList;
+								current_token.content += " ";
+								current_token.class = TokenType::NumberedListEl;
 								push_token(&mut tokens, &current_token);
 								current_token = Token::new();
 							}
 							nlist_wait_space = false;
 						},
 						'.' => {
-							if pos == 1 { nlist_wait_space = true; }
+							if !nlist_wait_space { nlist_wait_space = true; }
 							else { 
 								push_token(&mut tokens, &current_token);
 								current_token = Token::new();
@@ -437,8 +469,8 @@ pub(crate) fn tokenize(input: &str) -> Vec<Token> {
 	tokens
 }
 
-fn push_token(list: &mut Vec<Token>, token: &Token) {
-	if token.content != "" { list.push(token.clone()); }
+pub(crate) fn push_token(list: &mut Vec<Token>, token: &Token) {
+	if token.content != "" || !token.subtokens.is_empty() { list.push(token.clone()); }
 }
 
 

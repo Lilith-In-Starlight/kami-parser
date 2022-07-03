@@ -1,40 +1,23 @@
-PAGETITLE=Home
-DESCRIPTION=We are the & system, a system of about 40 alters. In this website you'll see the creations of the most artistic ones. As a whole, we go by Katie &, and our pronouns are she/her and they/them.
-;;EXTRAHEADS
-<link href="https://github.com/Lilith-In-Starlight" rel="me">
--BEGINFILE-
-## Welcome to Ampersandia.
+## Example
 
-After some walking, you had begun feeling like the world was... repeating on itself, somehow, but alas, you finally found signs of civilization: A city, surrounded by an unnaturally steep cliff which plateau'd the closer it got to the west. The sun was outshined by a bright tower in a distant desert, but this new light was not blinding; all the contrary, it was scarily comforting. It was going to be a weird descent.
+This is a paragraph
 
-We are [The & System](https://ampersandia.net){.h-card rel="me"}, a system of about 40 alters. In this website you'll see our works of art. If you have no idea what a system means in this context, [this link](https://morethanone.info/) has useful information. When pretending we're one single person, we go by Katie &, and our pronouns are she/her and they/them. Our works contain mentions of a lot of dark topics, it's hard to properly CW them all accurately. But we're working on it.
+{.id} This one has attributes!
 
-* [Roxy (she/her)](roxy)
-* [Ash (she/her)](ash)
-* [Niko (she/her) and Venus's (she/her) shitty vent poems](sariko)
-* [Our blog](blog)
-* [Bloodless: A card game](BloodlessPage)
-* [Survivor's 9 Step Guide To Conquering The Multiverse, A webcomic](s9sgtctm)
-* [Stranger Eons, Another webcomic](stranger_eons)
+{.id}
+* a
+* b
+** ba
+** bb
+* c
+** {.cad} ca
+{#class}
+##. cb
+##. cd
+###. cda
+##. cc
+* blep
 
-### Contact us or join our Discord server!
+# Thing
 
-* [Our Matrix Space](https://matrix.to/#/#ampersandia:tchncs.de)
-* [Our Discord Server](https://discord.gg/YNc5eB4WJZ)
-* [katie-and@ampersandia.net](mailto:katie-and@ampersandia.net){rel="me"}
-* [\@TheAndSys@koyu.space](https://koyu.space/@TheAndSys)
-* [\@TheAndSys@eldritch.cafe](https://eldritch.cafe/@TheAndSys)
-* [\@TheAndSys@mastodon.art](https://mastodon.art/@TheAndSys)
-
-### Links worth checking out (cool stuff)
-
-* [A friend who makes cool music and ascii art and stuff that goes well over my head](https://equa.space/)
-* [A friend who makes cool linguistics stuff and inspired some of my conlanging projects](http://www.lang.sg/)
-* [Cool(tm) person with Cool(tm) website](https://asnev.neocities.org/)
-* [A guy who's been collecting numbers since 1984](https://sites.google.com/site/jankogorenc/)
-* [A bucket of fish](https://bucketfish.me/)
-* [Writer's Lane, Nightfall City](https://nightfall.city/writers-lane/)
-
-*Disclaimer:* Despite the fact that both pages have a big ampersand in them, More Than One isn't made by us. Our system name just happens to be an ampersand.~
-
-~*RSS Feed:* https://ampersandia.net/rss.xml~
+**dab**
