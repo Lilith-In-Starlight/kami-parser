@@ -55,7 +55,7 @@ pub(crate) fn parse_attr(inp: &str) -> String {
 	out + &everything_else
 }
 
-pub(crate) fn parse(input: &str) -> String {
+pub fn parse(input: &str) -> String {
 	let mut tokvec:Vec<Vec<Token>> = Vec::new();
 	let mut out = String::new();
 	for i in input.lines() {
