@@ -3,6 +3,7 @@ use crate::multiline_lexer::block_lexer;
 use crate::lexer::Token;
 use crate::lexer::TokenType;
 use crate::multiline_lexer::get_list_depth;
+use htmlentity::entity::*;
 
 pub(crate) fn parse_attr(inp: &str) -> String {
 	if inp == "{}" || inp == "" { 
@@ -175,7 +176,7 @@ fn parse_line(input: &Vec<Token>) -> String {
 	let mut iter: usize = 0;
 	for i in input.iter() {
 		match i.class {
-			TokenType::Put => out += &i.content,
+			TokenType::Put => out += &encode(&i.content, EntitySet::SpecialCharsAndNoASCII, EncodeType::NamedOrHex).iter().collect::<String>(),
 			TokenType::Bold => out += &("<b ".to_owned() + &parse_attr(&i.attributes) + ">" + &parse_line(&i.subtokens) + "</b>"),
 			TokenType::Italic => out += &("<i ".to_owned() + &parse_attr(&i.attributes) + ">" + &parse_line(&i.subtokens) + "</i>"),
 			TokenType::Emphasis => out += &("<em ".to_owned() + &parse_attr(&i.attributes) + ">" + &parse_line(&i.subtokens) + "</em>"),
@@ -183,7 +184,7 @@ fn parse_line(input: &Vec<Token>) -> String {
 			TokenType::Sub => out += &("<sub ".to_owned() + &parse_attr(&i.attributes) + ">" + &parse_line(&i.subtokens) + "</sub>"),
 			TokenType::Sup => out += &("<sup ".to_owned() + &parse_attr(&i.attributes) + ">" + &parse_line(&i.subtokens) + "</sup>"),
 			TokenType::Span => out += &("<span ".to_owned() + &parse_attr(&i.attributes) + ">" + &parse_line(&i.subtokens) + "</span>"),
-			TokenType::Code => out += &("<code ".to_owned() + &parse_attr(&i.attributes) + ">" + &i.content[1..i.content.len()-1] + "</code>"),
+			TokenType::Code => out += &("<code ".to_owned() + &parse_attr(&i.attributes) + ">" + &encode(&i.content[1..i.content.len()-1], EntitySet::SpecialCharsAndNoASCII, EncodeType::NamedOrHex).iter().collect::<String>() + "</code>"),
 			TokenType::LineBreak => out += "<br>",
 			TokenType::LinkName => {
 				let parsed_name = parse_line(&i.subtokens);

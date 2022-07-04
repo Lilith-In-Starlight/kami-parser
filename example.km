@@ -1,25 +1,48 @@
-## Example
+# Kami
 
-This is a paragraph
+Kami tries to be a machine-first human-also-first markup language. It is designed with the purpose of being strictly an intermediary between our text styling desires and HTML. It was made as a way to have more control over what the HTML outout of a markup file will look like.
 
-{.id} This one has attributes!
+## Specification
 
-{.id}
-* a
-* b
-** ba
-** bb
-* c
-** {.cad} ca
-{#class}
-##. cb
-##. cd
-###. cda
-##. cc
-* blep
+### Bold and Italic
 
-# Thing
+Bold text is surrounded with single asterisks, and italic text is surrounded with single underscores.
 
-**dab**
+`*bold* _italic_`
 
-`test`
+### Strong and Emphasis
+
+In visual browsers, bold and strong look the same. The same is the case for italic and emphasis, but screen readers care about this distinction, as bold and italic are merely aesthetic but strong and emphasis are not. In KAMI, they're the same as their aesthetic counterparts, but doubled.
+
+`**strong** __emphasis__`
+
+### Hyperlinks
+
+Hyperlinks use Markdown syntax, surrounding the visible text in `[]` and the hyperlink in parenthesis.
+
+`[My website](https://ampersandia.net/)`
+
+### Headers
+
+Headers also use Markdown syntax, using an amount of `#` to specify the heading level.
+
+`## Second-level header`
+
+### Lists
+
+Unordered lists are lines preceded by an asterisk and a space. Ordered lists are lines preceded by a hash symbol, a period and a space.
+
+`* Unordered list`
+
+`#. Ordered list`
+
+### Attributes
+
+Attribute sequences go inside curly brackets. An attribute sequence will give attributes to the element right before it. There must be no spaces between an element and its attribute sequence, (unless said element contains spaces, in which case, only keep the spaces of the element). In an attribute sequence, the ID is preceded by a hashtag and the classes are preceded by a period. Other attributes are written like you would in HTML, `attr="value"`.
+
+`*text*{#foo .bar}` is a bold text with `foo` as ID and `bar` as a class.
+`[Me](https://ampersandia.net/){rel="me"}` is a hyperlink with a `rel="me"` attribute.
+`*. {.foo}` is an unordered list element with `foo` as a class.
+
+The `<ul>` and `<ol>` tags that surround lists can have attributes by putting an attribute sequence on the line before the list (or sublist) starts.
+
