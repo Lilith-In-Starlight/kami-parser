@@ -66,6 +66,7 @@ pub fn parse(input: &str) -> String {
 	for block in blocks {
 		match block.class {
 			TokenType::Para => out += &("<p ".to_owned() + &parse_attr(&block.attributes) + ">" + &parse_line(&block.subtokens) + "</p>\n"),
+			TokenType::Image => out += &("<img ".to_owned() + &parse_attr(&block.attributes) + " src=\"" + &block.content[1..block.content.len()-1] + "\"/>\n"),
 			TokenType::Header => out += &("<h".to_owned() + &block.content.len().to_string() + " " + &parse_attr(&block.attributes) + ">" + &parse_line(&block.subtokens) + "</h" + &block.content.len().to_string() + ">\n"),
 			TokenType::ListBlock => {
 				let mut list_types: Vec<&str> = Vec::new();

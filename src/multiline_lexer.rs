@@ -108,6 +108,20 @@ pub(crate) fn block_lexer(lines: &Vec<Vec<Token>>) -> Vec<Token>{
 						current_block.subtokens = line[1..].to_vec();
 						push_token(&mut blocks, &current_block);
 					},
+					TokenType::Image => {
+						if !lists.is_empty() {
+							push_token(&mut blocks, &Token::init_sub(TokenType::ListBlock, lists, String::new()));
+							lists = Vec::new();
+						}
+						if line.len() > 1 {
+							current_block = Token::n_para();
+							current_block.subtokens = line.clone();
+							push_token(&mut blocks, &current_block);
+						} else {
+							current_block = ftoken.clone();
+							push_token(&mut blocks, &current_block);
+						}
+					}
 					_ => {
 						if !lists.is_empty() {
 							push_token(&mut blocks, &Token::init_sub(TokenType::ListBlock, lists, String::new()));
