@@ -23,6 +23,7 @@ pub(crate) enum TokenType {
 	UList,
 	OList,
 	ListBlock, 
+	Image,
 }
 
 #[derive(Clone, Debug)]
@@ -104,6 +105,12 @@ pub(crate) fn tokenize(input: &str) -> Vec<Token> {
 								if !escaping {
 									push_token(&mut tokens, &current_token);
 									current_token = Token::init(TokenType::Sup, cha.to_string());
+								} else { current_token.content += &cha.to_string(); }
+							},
+							'!' => {
+								if !escaping {
+									push_token(&mut tokens, &current_token);
+									current_token = Token::init(TokenType::Image, cha.to_string());
 								} else { current_token.content += &cha.to_string(); }
 							},
 							'`' => {
@@ -284,6 +291,22 @@ pub(crate) fn tokenize(input: &str) -> Vec<Token> {
 							} 
 						},
 						' ' => if current_token.content == "~ " && !escaping { current_token.class = TokenType::Put },
+						_ => (),
+					}
+				},
+				TokenType::Image => {
+					current_token.content += &cha.to_string();
+					match cha {
+						'!' => {
+							if !escaping {
+								if current_token.content == "!!" {
+									current_token.class = TokenType::Put;
+								} else {
+									push_token(&mut tokens, &current_token);
+									current_token = Token::new();
+								}
+							}
+						},
 						_ => (),
 					}
 				},

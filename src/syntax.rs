@@ -186,6 +186,7 @@ fn parse_line(input: &Vec<Token>) -> String {
 			TokenType::Span => out += &("<span ".to_owned() + &parse_attr(&i.attributes) + ">" + &parse_line(&i.subtokens) + "</span>"),
 			TokenType::Code => out += &("<code ".to_owned() + &parse_attr(&i.attributes) + ">" + &encode(&i.content[1..i.content.len()-1], EntitySet::SpecialCharsAndNoASCII, EncodeType::NamedOrHex).iter().collect::<String>() + "</code>"),
 			TokenType::LineBreak => out += "<br>",
+			TokenType::Image => out += &("<img ".to_owned() + &parse_attr(&i.attributes) + " src=\""+ &i.content[1..i.content.len()-1] + "\"/>"),
 			TokenType::LinkName => {
 				let parsed_name = parse_line(&i.subtokens);
 				if iter < input.len() - 1 {

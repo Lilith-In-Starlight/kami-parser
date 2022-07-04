@@ -1,5 +1,7 @@
 # Kami
 
+!https://user-images.githubusercontent.com/56773311/177063954-21ca2de8-d7cc-4480-b396-b52726242511.png!
+
 Kami tries to be a machine-first human-also-first markup language. It is designed with the purpose of being strictly an intermediary between our text styling desires and HTML. It was made as a way to have more control over what the HTML outout of a markup file will look like.
 
 ## Specification
