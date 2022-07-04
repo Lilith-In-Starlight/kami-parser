@@ -1,5 +1,7 @@
 # KAMI
 
+![Kami Logo](https://user-images.githubusercontent.com/56773311/177063954-21ca2de8-d7cc-4480-b396-b52726242511.png)
+
 Kami is a machine-first human-also-first markup language, designed not for human readability, but for usability as an intermediary between our design desires and a machine's logic. Kami takes inspiration from Pandoc's Markdown flavor, and Textile, the latter of which is my favorite markup language. Its name stands for Katie Ampersand's Markup Instrument. I chose Instrument and not Language just becaues KAMI is a very cute acronym.
 
 Kami files should use the `.km` extension, as in `file.km`.
