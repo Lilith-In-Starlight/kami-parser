@@ -42,7 +42,7 @@ Subscript is surrounded with `~` and superscript is surrounded with a `^`. They 
 
 ### Underline and Strikethrough
 
-Strikethrough text is surrounded by dashes (`-`) and underlined text is surrounded by double dashes. This syntax is subject to change because I think it sucks.
+Strikethrough text is surrounded by dashes (`-`) and underlined text is surrounded by double dashes (`-`). This syntax is subject to change because I think it sucks.
 
 ### Hyperlinks
 
@@ -93,6 +93,26 @@ To give attributes to format blocks (like the `<ul> <ol>` parts of lists) just p
 ```
 {#id .class)
 * list element
+```
+
+### Inline HTML
+
+Inline HTML is done simply by writing HTML in the file. If a line starts with an HTML tag, the line will _not_ be treated as a paragraph (it won't be surrounded by the HTML `<p>` tag). If you want it to be surrounded, just add an empty attribute sequence at the beginning of the line.
+
+To make a line not be treated as a paragraph even if it won't have HTML tags, just make it start with a `<>`.
+
+```
+<title></title>
+{} <iframe>
+<> text
+```
+
+Would be parsed into
+
+```
+<title></title>
+<p><iframe></p>
+text
 ```
 
 ### Escaping

@@ -3,7 +3,7 @@ use crate::syntax::parse_attr;
 
 pub(crate) fn block_lexer(lines: &Vec<Vec<Token>>) -> Vec<Token>{
 	let mut blocks: Vec<Token> = Vec::new();
-	let mut current_block = Token::n_para();
+	let mut current_block: Token;
 	let mut lists: Vec<Token> = Vec::new();
 	let mut next_attr: String = String::new();
 	for line in lines.iter() {
@@ -85,9 +85,17 @@ pub(crate) fn block_lexer(lines: &Vec<Vec<Token>>) -> Vec<Token>{
 							},
 						}
 					},
+					TokenType::Html => {
+						if !lists.is_empty() {
+							push_token(&mut blocks, &Token::init_sub(TokenType::ListBlock, lists.clone(), String::new()));
+						}
+						current_block = ftoken.clone();
+						current_block.subtokens = line[1..].to_vec();
+						push_token(&mut blocks, &current_block);
+					}
 					TokenType::Attr => {
 						if !lists.is_empty() {
-							push_token(&mut blocks, &Token::init_sub(TokenType::ListBlock, lists, String::new()));
+							push_token(&mut blocks, &Token::init_sub(TokenType::ListBlock, lists.clone(), String::new()));
 							lists = Vec::new();
 						}
 						if line.len() > 1 {
@@ -101,7 +109,7 @@ pub(crate) fn block_lexer(lines: &Vec<Vec<Token>>) -> Vec<Token>{
 					},
 					TokenType::Header => {
 						if !lists.is_empty() {
-							push_token(&mut blocks, &Token::init_sub(TokenType::ListBlock, lists, String::new()));
+							push_token(&mut blocks, &Token::init_sub(TokenType::ListBlock, lists.clone(), String::new()));
 							lists = Vec::new();
 						}
 						current_block = ftoken.clone();
@@ -110,7 +118,7 @@ pub(crate) fn block_lexer(lines: &Vec<Vec<Token>>) -> Vec<Token>{
 					},
 					TokenType::Image => {
 						if !lists.is_empty() {
-							push_token(&mut blocks, &Token::init_sub(TokenType::ListBlock, lists, String::new()));
+							push_token(&mut blocks, &Token::init_sub(TokenType::ListBlock, lists.clone(), String::new()));
 							lists = Vec::new();
 						}
 						if line.len() > 1 {
@@ -124,7 +132,7 @@ pub(crate) fn block_lexer(lines: &Vec<Vec<Token>>) -> Vec<Token>{
 					}
 					_ => {
 						if !lists.is_empty() {
-							push_token(&mut blocks, &Token::init_sub(TokenType::ListBlock, lists, String::new()));
+							push_token(&mut blocks, &Token::init_sub(TokenType::ListBlock, lists.clone(), String::new()));
 							lists = Vec::new();
 						}
 						current_block = Token::n_para();
@@ -136,7 +144,7 @@ pub(crate) fn block_lexer(lines: &Vec<Vec<Token>>) -> Vec<Token>{
 		}
 	}
 	if !lists.is_empty() {
-		push_token(&mut blocks, &Token::init_sub(TokenType::ListBlock, lists, String::new()));
+		push_token(&mut blocks, &Token::init_sub(TokenType::ListBlock, lists.clone(), String::new()));
 	}
 	blocks
 }

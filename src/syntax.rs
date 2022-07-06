@@ -68,6 +68,13 @@ pub fn parse(input: &str) -> String {
 			TokenType::Para => out += &("<p ".to_owned() + &parse_attr(&block.attributes) + ">" + &parse_line(&block.subtokens) + "</p>\n"),
 			TokenType::Image => out += &("<img ".to_owned() + &parse_attr(&block.attributes) + " src=\"" + &block.content[1..block.content.len()-1] + "\"/>\n"),
 			TokenType::Header => out += &("<h".to_owned() + &block.content.len().to_string() + " " + &parse_attr(&block.attributes) + ">" + &parse_line(&block.subtokens) + "</h" + &block.content.len().to_string() + ">\n"),
+			TokenType::Html => {
+				if block.content == "<>" {
+					out += &(parse_line(&block.subtokens) + "\n");
+				} else {
+					out += &(block.content.to_owned() + &parse_line(&block.subtokens) + "\n");
+				}
+			},
 			TokenType::ListBlock => {
 				let mut list_types: Vec<&str> = Vec::new();
 				let mut last_level = 0;
@@ -185,6 +192,7 @@ fn parse_line(input: &Vec<Token>) -> String {
 			TokenType::Sub => out += &("<sub ".to_owned() + &parse_attr(&i.attributes) + ">" + &parse_line(&i.subtokens) + "</sub>"),
 			TokenType::Sup => out += &("<sup ".to_owned() + &parse_attr(&i.attributes) + ">" + &parse_line(&i.subtokens) + "</sup>"),
 			TokenType::Span => out += &("<span ".to_owned() + &parse_attr(&i.attributes) + ">" + &parse_line(&i.subtokens) + "</span>"),
+			TokenType::Html => out += &i.content,
 			TokenType::Code => out += &("<code ".to_owned() + &parse_attr(&i.attributes) + ">" + &encode(&i.content[1..i.content.len()-1], EntitySet::SpecialCharsAndNoASCII, EncodeType::NamedOrHex).iter().collect::<String>() + "</code>"),
 			TokenType::LineBreak => out += "<br>",
 			TokenType::Image => out += &("<img ".to_owned() + &parse_attr(&i.attributes) + " src=\""+ &i.content[1..i.content.len()-1] + "\"/>"),
