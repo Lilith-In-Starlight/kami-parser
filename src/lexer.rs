@@ -213,7 +213,7 @@ pub(crate) fn tokenize(input: &str) -> Vec<Token> {
 					current_token.content += &cha.to_string();
 					match cha {
 						'*' => {
-							if !(pos == 3 && current_token.content == "***") {
+							if !(pos == 2 && current_token.content == "***") {
 								if !escaping && !strong_wait { strong_wait = true; }
 								else if !escaping && strong_wait {
 									current_token.tokenize_content(2);

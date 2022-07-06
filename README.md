@@ -79,6 +79,8 @@ To nest lists inside each other, simply add more asterisks or hashtags, for exam
 ** Sublist element
 ```
 
+Lists can be arbitrarily nested, which means you can nest an ordered list inside an unordered list and vice versa, in whatever configuration you wish, as many times as you wish.
+
 ### Attributes
 
 Everything mentioned here can have id, class, and any HTML attribute you might care about. Simply do this `{#id .class1 .class2 attribute="value"}` after the affected part, without a space in between. Note that tokens that have spaces as their last character (like in the case of lists) _don't_ get that space removed. They keep that space.
