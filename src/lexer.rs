@@ -48,14 +48,19 @@ impl Token {
 		Self { class: class, content: content, subtokens: tcontent, attributes: String::new() }
 	}
 	pub(crate) fn tokenize_content(self: &mut Self, borders: usize) {
-		self.subtokens = tokenize(&self.content[borders..self.content.len()-borders]);
+		self.subtokens = tokenize(&self.content[borders..self.content.len()-borders]).0;
+	}
+	pub(crate) fn tokenize_unclosed(self: &mut Self, borders: usize) {
+		self.subtokens = tokenize(&self.content[borders..self.content.len()]).0;
 	}
 }
 
-pub(crate) fn tokenize(input: &str) -> Vec<Token> {
+pub(crate) fn tokenize(input: &str) -> (Vec<Token>, String) {
 	let mut tokens:Vec<Token> = vec![];
 	let mut current_token: Token = Token::new();
 	let mut escaping = false;
+
+	let mut warnings = String::new();
 
 	let mut nlist_wait_space = false;
 
@@ -128,7 +133,7 @@ pub(crate) fn tokenize(input: &str) -> Vec<Token> {
 							'-' => {
 								if !escaping {
 									push_token(&mut tokens, &current_token);
-									current_token = Token::init(TokenType::Strike, cha.to_string());
+									current_token = Token::init(TokenType::Under, cha.to_string());
 								} else { current_token.content += &cha.to_string(); }
 							},
 							'#' => {
@@ -285,9 +290,13 @@ pub(crate) fn tokenize(input: &str) -> Vec<Token> {
 					match cha {
 						'~' => {
 							if !escaping {
-								current_token.tokenize_content(1);
-								push_token(&mut tokens, &current_token);
-								current_token = Token::new();
+								if current_token.content == "~~" {
+									current_token.class = TokenType::Strike;
+								} else {
+									current_token.tokenize_content(1);
+									push_token(&mut tokens, &current_token);
+									current_token = Token::new();
+								}
 							} 
 						},
 						' ' => if current_token.content == "~ " && !escaping { current_token.class = TokenType::Put },
@@ -304,6 +313,13 @@ pub(crate) fn tokenize(input: &str) -> Vec<Token> {
 								} else {
 									push_token(&mut tokens, &current_token);
 									current_token = Token::new();
+								}
+							}
+						},
+						' ' => {
+							if !escaping {
+								if current_token.content == "! " {
+									current_token.class = TokenType::Put;
 								}
 							}
 						},
@@ -354,32 +370,42 @@ pub(crate) fn tokenize(input: &str) -> Vec<Token> {
 				TokenType::Strike => {
 					current_token.content += &cha.to_string();
 					match cha {
-						'-' => {
-							if current_token.content == "--" && !escaping { current_token.class = TokenType::Under; }
-							else if !escaping {
-								current_token.tokenize_content(1);
-								push_token(&mut tokens, &current_token);
-								current_token = Token::new();
-							}
-						},
-						' ' => if current_token.content == "- " && !escaping { current_token.class = TokenType::Put },
-						_ => (),
-					}
-				},
-				TokenType::Under => {
-					current_token.content += &cha.to_string();
-					match cha {
-						'-' => {
+						'~' => {
 							if !escaping && !strong_wait { strong_wait = true; }
 							else if !escaping && strong_wait {
-								current_token.tokenize_content(2);
+								current_token.tokenize_content(1);
 								push_token(&mut tokens, &current_token);
 								current_token = Token::new();
 								strong_wait = false;
 							} else { strong_wait = false; }
 						},
-						' ' => if current_token.content == "-- " && !escaping { current_token.class = TokenType::Put },
+						' ' => if current_token.content == "~~ " && !escaping { current_token.class = TokenType::Put },
 						_ => (),
+					}
+				},
+				TokenType::Under => {
+					if current_token.content == "-" {
+						current_token.content += &cha.to_string();
+						match cha {
+							'-' => (),
+							_ => current_token.class = TokenType::Put,
+						}
+					}
+					else {
+						current_token.content += &cha.to_string();
+						match cha {
+							'-' => {
+								if !escaping && !strong_wait { strong_wait = true; }
+								else if !escaping && strong_wait {
+									current_token.tokenize_content(2);
+									push_token(&mut tokens, &current_token);
+									current_token = Token::new();
+									strong_wait = false;
+								} else { strong_wait = false; }
+							},
+							' ' => if current_token.content == "-- " && !escaping { current_token.class = TokenType::Put },
+							_ => (),
+						}
 					}
 				},
 				TokenType::Html => {
@@ -486,10 +512,30 @@ pub(crate) fn tokenize(input: &str) -> Vec<Token> {
 		if escaping && cha != '\\' { escaping = false; }
 	}
 	if !current_token.content.is_empty() {
-		current_token.class = TokenType::Put;
-		push_token(&mut tokens, &current_token);
+		match current_token.class {
+			TokenType::Put => (),
+			_ => warnings += &format!("WARNING: Unclosed {:?} token at {}\n", current_token.class, current_token.content),
+		}
+		match current_token.class {
+			TokenType::Bold | TokenType::Italic | TokenType::Sub | TokenType::Sup | TokenType::LinkName | TokenType::LinkDir | TokenType::Attr | TokenType::Image | TokenType::Html | TokenType::Code | TokenType::Span => {
+				push_token(&mut tokens, &Token::init(TokenType::Put, current_token.content[0..1].to_string()));
+				println!("{:#?}", &tokenize(&current_token.content[1..]));
+				current_token.tokenize_unclosed(1);
+				tokens.append(&mut current_token.subtokens);
+			},
+			TokenType::Strong | TokenType::Emphasis | TokenType::Under | TokenType::Strike => {
+				push_token(&mut tokens, &Token::init(TokenType::Put, current_token.content[0..2].to_string()));
+				current_token.tokenize_unclosed(2);
+				tokens.append(&mut current_token.subtokens);
+			}
+			TokenType::Put => push_token(&mut tokens, &current_token),
+			_ => { 
+				push_token(&mut tokens, &current_token);
+				warnings += "The unclosing of the last token was impossible to handle for Kami, so the raw text has been outputted. Please contact the project maintainer about this.\n";
+			}
+		}
 	}
-	tokens
+	(tokens, warnings)
 }
 
 pub(crate) fn push_token(list: &mut Vec<Token>, token: &Token) {

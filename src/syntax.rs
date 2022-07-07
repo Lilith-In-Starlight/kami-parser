@@ -56,11 +56,14 @@ pub(crate) fn parse_attr(inp: &str) -> String {
 	out + &everything_else
 }
 
-pub fn parse(input: &str) -> String {
+pub fn parse(input: &str) -> (String, String) {
 	let mut tokvec:Vec<Vec<Token>> = Vec::new();
 	let mut out = String::new();
+	let mut warnings = String::new();
 	for i in input.lines() {
-		tokvec.push(tokenize(i));
+		let (tokens, warns) = tokenize(i);
+		tokvec.push(tokens);
+		warnings += &warns;	
 	}
 	let blocks = block_lexer(&tokvec);
 	for block in blocks {
@@ -175,7 +178,7 @@ pub fn parse(input: &str) -> String {
 			_ => (),
 		}
 	}
-	out
+	(out, warnings)
 }
 
 
