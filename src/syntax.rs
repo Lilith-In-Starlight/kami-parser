@@ -195,6 +195,8 @@ fn parse_line(input: &Vec<Token>) -> String {
 			TokenType::Sub => out += &("<sub ".to_owned() + &parse_attr(&i.attributes) + ">" + &parse_line(&i.subtokens) + "</sub>"),
 			TokenType::Sup => out += &("<sup ".to_owned() + &parse_attr(&i.attributes) + ">" + &parse_line(&i.subtokens) + "</sup>"),
 			TokenType::Span => out += &("<span ".to_owned() + &parse_attr(&i.attributes) + ">" + &parse_line(&i.subtokens) + "</span>"),
+			TokenType::Strike => out += &("<del ".to_owned() + &parse_attr(&i.attributes) + ">" + &parse_line(&i.subtokens) + "</del>"),
+			TokenType::Under => out += &("<u ".to_owned() + &parse_attr(&i.attributes) + ">" + &parse_line(&i.subtokens) + "</u>"),
 			TokenType::Html => out += &i.content,
 			TokenType::Code => out += &("<code ".to_owned() + &parse_attr(&i.attributes) + ">" + &encode(&i.content[1..i.content.len()-1], EntitySet::SpecialCharsAndNoASCII, EncodeType::NamedOrHex).iter().collect::<String>() + "</code>"),
 			TokenType::LineBreak => out += "<br>",
