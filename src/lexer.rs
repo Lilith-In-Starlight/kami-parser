@@ -373,7 +373,7 @@ pub(crate) fn tokenize(input: &str) -> (Vec<Token>, String) {
 						'~' => {
 							if !escaping && !strong_wait { strong_wait = true; }
 							else if !escaping && strong_wait {
-								current_token.tokenize_content(1);
+								current_token.tokenize_content(2);
 								push_token(&mut tokens, &current_token);
 								current_token = Token::new();
 								strong_wait = false;
