@@ -519,7 +519,6 @@ pub(crate) fn tokenize(input: &str) -> (Vec<Token>, String) {
 		match current_token.class {
 			TokenType::Bold | TokenType::Italic | TokenType::Sub | TokenType::Sup | TokenType::LinkName | TokenType::LinkDir | TokenType::Attr | TokenType::Image | TokenType::Html | TokenType::Code | TokenType::Span => {
 				push_token(&mut tokens, &Token::init(TokenType::Put, current_token.content[0..1].to_string()));
-				println!("{:#?}", &tokenize(&current_token.content[1..]));
 				current_token.tokenize_unclosed(1);
 				tokens.append(&mut current_token.subtokens);
 			},
