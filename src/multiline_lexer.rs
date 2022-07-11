@@ -1,5 +1,4 @@
 use crate::lexer::{TokenType, Token, push_token};
-use crate::syntax::parse_attr;
 
 pub(crate) fn block_lexer(lines: &Vec<Vec<Token>>) -> Vec<Token>{
 	let mut blocks: Vec<Token> = Vec::new();
@@ -100,7 +99,7 @@ pub(crate) fn block_lexer(lines: &Vec<Vec<Token>>) -> Vec<Token>{
 						}
 						if line.len() > 1 {
 							current_block = Token::n_para();
-							current_block.attributes = parse_attr(&line[1].content);
+							current_block.attributes = line[0].content.to_owned();
 							current_block.subtokens = line[1..].to_vec();
 							push_token(&mut blocks, &current_block);
 						} else {
