@@ -136,8 +136,20 @@ pub(crate) fn block_lexer(lines: &Vec<Vec<Token>>) -> Vec<Token>{
 						}
 						current_block = Token::n_para();
 						current_block.subtokens = line.clone();
-						push_token(&mut blocks, &current_block);
-					},
+						match blocks.last_mut() {
+							None => push_token(&mut blocks, &current_block),
+							Some(x) => {
+								let first_char = current_block.subtokens.first_mut().expect("An empty string got to the paragraph parser.");
+								if &first_char.content[0..1] == " " {
+									x.subtokens.push(Token::init(TokenType::LineBreak, "\n".to_owned()));
+									first_char.content = "\n".to_owned() + &first_char.content[1..];
+									x.subtokens.append(&mut current_block.subtokens);
+								} else {
+									push_token(&mut blocks, &current_block);
+								}
+							},
+						}
+					}
 				}
 			}
 		}
