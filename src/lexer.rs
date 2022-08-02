@@ -188,14 +188,11 @@ pub(crate) fn tokenize(input: &str) -> (Vec<Token>, String) {
 						},
 						'|' => {
 							if !escaping {
-								match tokens.last() {
-									None => {
-										push_token(&mut tokens, &current_token);
-										current_token = Token::init(TokenType::TableRow, String::new());
-									},
-									_ => current_token.content += &cha.to_string(),
-								}
-							}
+								if tokens.is_empty() && current_token.content.is_empty() {
+									push_token(&mut tokens, &current_token);
+									current_token = Token::init(TokenType::TableRow, String::new());
+								} else { current_token.content += &cha.to_string() }
+							} else { current_token.content += &cha.to_string() }
 						}
 						'n' => {
 							if escaping {
