@@ -33,13 +33,13 @@ fn table_parse(input: &String) -> Token {
 				},
 				'r' => {
 					match cell_mode {
-						CellMode::None => current_cell.attributes += &ch.to_string(),
+						CellMode::Attr => current_cell.attributes += &ch.to_string(),
 						_ => cell_mode = CellMode::Row,
 					}
 				},
 				'c' => {
 					match cell_mode {
-						CellMode::None => current_cell.attributes += &ch.to_string(),
+						CellMode::Attr => current_cell.attributes += &ch.to_string(),
 						_ => cell_mode = CellMode::Column,
 					}
 				},
@@ -73,13 +73,17 @@ fn table_parse(input: &String) -> Token {
 					current_cell_col = String::new();
 				},
 				' ' => starting_cell = false,
-				_ => (),
+				_ => {
+					match cell_mode {
+						CellMode::Attr => current_cell.attributes += &ch.to_string(),
+						_ => panic!("Unexpected character in table cell initiation"),
+					}
+				},
 			}
 		} else {
 			// If it's writing the content of the cell
 			match ch {
 				'|' => {
-					println!("{}", current_cell.content);
 					current_cell.subtokens = tokenize(&current_cell.content.trim_end_matches('\t')).0;
 					out.push(current_cell.clone());
 					starting_cell = true;
@@ -109,6 +113,8 @@ pub(crate) fn block_lexer(lines: &Vec<Vec<Token>>) -> Vec<Token>{
 			Some(ftoken) => {
 				match ftoken.class {
 					TokenType::TableRow => {
+						table.attributes = next_attr.clone();
+						next_attr = String::new();
 						table.subtokens.push(table_parse(&ftoken.content));
 					},
 					TokenType::ListEl => {

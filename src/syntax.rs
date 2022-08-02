@@ -79,17 +79,22 @@ pub fn parse(input: &str) -> (String, String) {
 				}
 			},
 			TokenType::Table => {
-				out += "<table>";
+				out += &("<table ".to_owned() + &parse_attr(&block.attributes) + ">\n");
 				for row in block.subtokens {
-					out += "<td>";
+					out += &("<tr ".to_owned() + &parse_attr(&row.attributes) + ">\n");
 					for cell in row.subtokens {
-						out += "<tr>";
+						let htag = match cell.class {
+							TokenType::TableCell => "td",
+							TokenType::TableHeader => "th",
+							_ => panic!("Non-table token when expecting table token"),
+						};
+						out += &("<".to_owned() + htag + " " + &parse_attr(&cell.attributes)+ ">");
 						out += &parse_line(&cell.subtokens);
-						out += "</td>";
+						out += &("</".to_owned() + htag + ">\n");
 					}
-					out += "</tr>";
+					out += "</tr>\n";
 				}
-				out += "</table>";
+				out += "</table>\n";
 			},
 			TokenType::ListBlock => {
 				let mut list_types: Vec<&str> = Vec::new();
