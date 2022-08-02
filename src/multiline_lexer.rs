@@ -14,6 +14,7 @@ fn table_parse(input: &String) -> Token {
 		Row,
 		Attr,
 	}
+	let mut nullify = false;
 	let mut out: Vec<Token> = Vec::new();
 	let mut starting_cell = true;
 	let mut current_cell = Token::init(TokenType::TableCell, String::new());
@@ -59,20 +60,41 @@ fn table_parse(input: &String) -> Token {
 					match cell_mode {
 						CellMode::Attr => {
 							cell_mode = CellMode::None;
-							current_cell.attributes += &ch.to_string();
 						},
 						_ => panic!("{}", "Found a } outside an attribute sequence"),
 					}
 				},
 				'|' => {
-					rowattr = current_cell.attributes;
+					nullify = false;
 					starting_cell = true;
 					current_cell = Token::init(TokenType::TableCell, String::new());
 					cell_mode = CellMode::None;
 					current_cell_row = String::new();
 					current_cell_col = String::new();
 				},
-				' ' => starting_cell = false,
+				'-' => nullify = true,
+				' ' => {
+					match cell_mode {
+						CellMode::Attr => current_cell.attributes += &ch.to_string(),
+						_ => {
+							starting_cell = false;
+							let mut close_atter = !current_cell.attributes.is_empty();
+							if !current_cell_col.is_empty() || !current_cell_row.is_empty() {
+								if !close_atter {
+									current_cell.attributes += "{";
+									close_atter = true;
+								}
+								if !current_cell_row.is_empty() {
+									current_cell.attributes += &(" rowspan=\"".to_owned() + &current_cell_row + "\"");
+								}
+								if !current_cell_col.is_empty() {
+									current_cell.attributes += &(" colspan=\"".to_owned() + &current_cell_col + "\"");
+								}
+							}
+							if close_atter { current_cell.attributes += "}" }
+						}
+					}
+				},
 				_ => {
 					match cell_mode {
 						CellMode::Attr => current_cell.attributes += &ch.to_string(),
@@ -84,8 +106,11 @@ fn table_parse(input: &String) -> Token {
 			// If it's writing the content of the cell
 			match ch {
 				'|' => {
-					current_cell.subtokens = tokenize(&current_cell.content.trim_end_matches('\t')).0;
-					out.push(current_cell.clone());
+					if !nullify {
+						current_cell.subtokens = tokenize(&current_cell.content.trim_end_matches('\t')).0;
+						out.push(current_cell.clone());
+					}
+					nullify = false;
 					starting_cell = true;
 					current_cell = Token::init(TokenType::TableCell, String::new());
 					cell_mode = CellMode::None;
@@ -95,6 +120,10 @@ fn table_parse(input: &String) -> Token {
 				_ => current_cell.content += &ch.to_string(),
 			}
 		}
+	}
+	if !current_cell.attributes.is_empty() && current_cell.content.is_empty() {
+		current_cell.attributes += "}";
+		rowattr = current_cell.attributes;
 	}
 	let mut outok = Token::init_sub(TokenType::TableRow, out, String::new());
 	outok.attributes = rowattr;
@@ -113,8 +142,10 @@ pub(crate) fn block_lexer(lines: &Vec<Vec<Token>>) -> Vec<Token>{
 			Some(ftoken) => {
 				match ftoken.class {
 					TokenType::TableRow => {
-						table.attributes = next_attr.clone();
-						next_attr = String::new();
+						if table.subtokens.is_empty() {
+							table.attributes = next_attr.clone();
+							next_attr = String::new();
+						}
 						table.subtokens.push(table_parse(&ftoken.content));
 					},
 					TokenType::ListEl => {
