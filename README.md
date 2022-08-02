@@ -132,14 +132,14 @@ KAMI tables are, for the most part, quite simple.
 
 (nvim forced me to use spaces for indentation and I just kinda allowed it, but you prettify your tables with tabs. Spaces will be put in the final output)
 
-You can make a cell be a header by starting it wit `|*`. Any cell can be a header, not only the top ones. This allows for vertical tables.
+You can make a cell be a header by starting it with `|*`. Any cell can be a header, not only the top ones. This allows for vertical tables.
 
-You can set a cell's colspan and rowspan like this `|cXrY`, where X is colspan and Y is rowspan. If you only want rowspan, only do `|rY`, and if you only want colspan, do `|cX`. `cXrY` is as valid as `rXcY`.
+You can set a cell's colspan and rowspan with `|cXrY`, where X is colspan and Y is rowspan. If you only want rowspan, only do `|rY`, and if you only want colspan, do `|cX`. `cXrY` is as valid as `rXcY`.
 
 You can set a cell's attributes like this `|{attr}`.
 
-Attributes, rowspan, colspan and the header mark can go in any order that keeps rowspan and colspan next to each other.
+Attributes, rowspan, colspan and the header mark can go in any order`|r5*{#id}c1` is a valid cell starter. Just try to make them readable for yourself. I personally do `|rXcY*{attrs}`.
 
 To put attributes on a row, put an attribute sequence after the last cell in the row.
 
-To put attributes on a table, put an attribute sequence before the table.
+To put attributes on a table, put an attribute sequence before the table starts, as you would do with lists.
