@@ -8,7 +8,7 @@ description = "Kami tries to be a machine-first human-also-first markup language
 readme = "README.md"
 license-file = "LICENSE.md"
 keywords = ["markup-language", "kami", "parser", "html"]
-categories = ["parser-implementations", "command-line-utilities", "text-processing"]
+categories = ["parser-implementations", "text-processing"]
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
