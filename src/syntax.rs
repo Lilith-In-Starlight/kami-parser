@@ -78,6 +78,19 @@ pub fn parse(input: &str) -> (String, String) {
 					out += &(block.content.to_owned() + &parse_line(&block.subtokens) + "\n");
 				}
 			},
+			TokenType::Table => {
+				out += "<table>";
+				for row in block.subtokens {
+					out += "<td>";
+					for cell in row.subtokens {
+						out += "<tr>";
+						out += &parse_line(&cell.subtokens);
+						out += "</td>";
+					}
+					out += "</tr>";
+				}
+				out += "</table>";
+			},
 			TokenType::ListBlock => {
 				let mut list_types: Vec<&str> = Vec::new();
 				let mut last_level = 0;

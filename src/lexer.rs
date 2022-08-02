@@ -25,6 +25,10 @@ pub(crate) enum TokenType {
 	ListBlock, 
 	Image,
 	Raw,
+	TableRow,
+	TableCell,
+	TableHeader,
+	Table,
 }
 
 #[derive(Clone, Debug)]
@@ -182,6 +186,17 @@ pub(crate) fn tokenize(input: &str) -> (Vec<Token>, String) {
 								}
 							} else { current_token.content += &cha.to_string(); }
 						},
+						'|' => {
+							if !escaping {
+								match tokens.last() {
+									None => {
+										push_token(&mut tokens, &current_token);
+										current_token = Token::init(TokenType::TableRow, String::new());
+									},
+									_ => current_token.content += &cha.to_string(),
+								}
+							}
+						}
 						'n' => {
 							if escaping {
 								push_token(&mut tokens, &current_token);
@@ -195,6 +210,7 @@ pub(crate) fn tokenize(input: &str) -> (Vec<Token>, String) {
 						_ => current_token.content += &cha.to_string(),
 					}
 				},
+				TokenType::TableRow => current_token.content += &cha.to_string(),
 				TokenType::Raw => {
 					match cha {
 						'=' => {
@@ -529,7 +545,7 @@ pub(crate) fn tokenize(input: &str) -> (Vec<Token>, String) {
 	}
 	if !current_token.content.is_empty() {
 		match current_token.class {
-			TokenType::Put => (),
+			TokenType::Put | TokenType::TableRow => (),
 			_ => warnings += &format!("WARNING: Unclosed {:?} token at {}\n", current_token.class, current_token.content),
 		}
 		match current_token.class {
@@ -543,7 +559,7 @@ pub(crate) fn tokenize(input: &str) -> (Vec<Token>, String) {
 				current_token.tokenize_unclosed(2);
 				tokens.append(&mut current_token.subtokens);
 			}
-			TokenType::Put => push_token(&mut tokens, &current_token),
+			TokenType::Put | TokenType::TableRow => push_token(&mut tokens, &current_token),
 			_ => { 
 				push_token(&mut tokens, &current_token);
 				warnings += "The unclosing of the last token was impossible to handle for Kami, so the raw text has been outputted. Please contact the project maintainer about this.\n";
