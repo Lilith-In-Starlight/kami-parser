@@ -551,11 +551,21 @@ pub(crate) fn tokenize(input: &str) -> (Vec<Token>, String) {
 				current_token.tokenize_unclosed(1);
 				tokens.append(&mut current_token.subtokens);
 			},
-			TokenType::Strong | TokenType::Emphasis | TokenType::Under | TokenType::Strike => {
+			TokenType::Strong | TokenType::Emphasis | TokenType::Strike => {
 				push_token(&mut tokens, &Token::init(TokenType::Put, current_token.content[0..2].to_string()));
 				current_token.tokenize_unclosed(2);
 				tokens.append(&mut current_token.subtokens);
-			}
+			},
+			TokenType::Under => {
+				if current_token.content == "-" {
+					push_token(&mut tokens, &Token::init(TokenType::Put, current_token.content));
+					tokens.append(&mut current_token.subtokens);
+				} else {
+					push_token(&mut tokens, &Token::init(TokenType::Put, current_token.content[0..2].to_string()));
+					current_token.tokenize_unclosed(2);
+					tokens.append(&mut current_token.subtokens);
+				}
+			},
 			TokenType::Put | TokenType::TableRow => push_token(&mut tokens, &current_token),
 			_ => { 
 				push_token(&mut tokens, &current_token);
